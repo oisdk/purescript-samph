@@ -11,6 +11,7 @@ import Samph.Types
 import Data.StrMap.ST
 import Control.Monad.Eff
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Trans
 import Control.Monad.Eff.Console
 import Control.Alternative
@@ -140,6 +141,9 @@ instruction = binop <|> unop <|> nop where
                , map show reg
                , map show lit ]
 
+unMon :: forall n m a. Monad m => (forall a. n a -> m a) -> ParserT String n a -> ParserT String m a
+unMon f (ParserT p) = ParserT $ \s -> f (p s)
+
 firstPass :: forall m. Monad m => ParserT String m (StrMap Int)
 firstPass = wSpace *> ParserT p where
   p s = pure (runPure (runST (unParserT firstPass' s)))
@@ -195,8 +199,8 @@ mov ::  forall m. Monad m => ParserT String m MachineCode
 mov = op "MOV" *> (regOpts <|> othOpts) where
   regOpts = do
     r <- reg <* comma
-    d0 r <|> brackets (d3 r <|> d1 r)
-  othOpts = brackets (d4 <|> d2) <* comma <*> reg
+    d0 r <|> d3 r <|> d1 r
+  othOpts = (d4 <|> d2) <* comma <*> reg
   d0 r = D0 r <$> lit
   d3 r = D3 r <$> addrReg
   d1 r = D1 r <$> addrLit
@@ -208,19 +212,40 @@ cmp = op "CMP" *> do
   r <- reg <* comma
   DA r <$> reg <|> DB r <$> lit <|> DC r <$> addrLit
 
--- jmp :: forall m s. MonadReader (StrMap Int) m
---     => ParserT String m MachineCode
--- jmp = do
---   c <- choice [ op "JMP" $> C0
---               , op "JZ"  $> C1
---               , op "JNZ" $> C2
---               , op "JS"  $> C3
---               , op "JNS" $> C4
---               , op "JO"  $> C5
---               , op "JNO" $> C6 ]
---   name <- ident
---   locs <- ask
---   case lookup name locs of
---     Nothing -> fail ("Unrecognised label: " <> name)
---     Just n -> pure (c n)
+jmp :: forall m r. (Monad m, MonadReader (StrMap Int) m)
+    => ParserT String m MachineCode
+jmp = do
+  c <- choice [ op "JMP" $> C0
+              , op "JZ"  $> C1
+              , op "JNZ" $> C2
+              , op "JS"  $> C3
+              , op "JNS" $> C4
+              , op "JO"  $> C5
+              , op "JNO" $> C6 ]
+  name <- ident
+  labels <- lift ask
+  case lookup name labels of
+    Nothing -> fail ("Unrecognised label: " <> name)
+    Just n -> pure (c (Lit n))
+
+data ParserState = ParserState
+  { labels :: StrMap Int }
+
+instructions' :: forall m r. (Monad m, MonadReader (StrMap Int) m)
+             => ParserT String m (Maybe MachineCode)
+instructions' = map Just (choice [mov, cmp, jmp, unArith, binArith]) <|> labelDecl $> Nothing
+
+instructions :: forall m. Monad m
+             => StrMap Int
+             -> ParserT String m (Array MachineCode)
+instructions m = do
+  ins <- unMon (\p -> pure (runReader p m)) (many instructions')
+  reserved "END"
+  pure (catMaybes ins)
+
+program :: forall m. Monad m => ParserT String m (Array MachineCode)
+program = do
+  wSpace
+  fpLabels <- lookAhead firstPass
+  instructions fpLabels
 

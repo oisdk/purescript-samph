@@ -143,8 +143,8 @@ var main = function __do() {
     parseExample(Samph_Types.eqAddrLit)(Samph_Types.showAddrLit)(Samph_Pars.addrLit(Data_Identity.monadIdentity))(10)("[A]")();
     parseExample(Samph_Types.eqAddrReg)(Samph_Types.showAddrReg)(Samph_Pars.addrReg(Data_Identity.monadIdentity))(Samph_Types.AL.value)("[AL ]")();
     parseExample(Data_Eq.eqString)(Data_Show.showString)(Samph_Pars.instruction(Data_Identity.monadIdentity))("AL 4")("ADD AL, 4")();
-    parseExample(Data_Eq.eqString)(Data_Show.showString)(Samph_Pars.instruction(Data_Identity.monadIdentity))("AL 4")("MUL [AL],4")();
-    parseExample(Data_Eq.eqString)(Data_Show.showString)(Samph_Pars.instruction(Data_Identity.monadIdentity))("BL AL")("SUB [BL],AL")();
+    parseExample(Data_Eq.eqString)(Data_Show.showString)(Samph_Pars.instruction(Data_Identity.monadIdentity))("[AL] 4")("MUL [AL],4")();
+    parseExample(Data_Eq.eqString)(Data_Show.showString)(Samph_Pars.instruction(Data_Identity.monadIdentity))("[BL] AL")("SUB [BL],AL")();
     parseExample(Data_Eq.eqString)(Data_Show.showString)(Samph_Pars.labelDecl(Data_Identity.monadIdentity))("jump")("jump :  ")();
     parseExample(Data_Eq.eqString)(Data_Show.showString)(Samph_Pars.instruction(Data_Identity.monadIdentity))("")("CLO")();
     parseExample(Data_Eq.eqString)(Data_Show.showString)(Samph_Pars.instruction(Data_Identity.monadIdentity))("Clear")("JZ Clear")();
@@ -154,7 +154,8 @@ var main = function __do() {
     fromFile(Data_StrMap.eqStrMap(Data_Eq.eqInt))(Data_StrMap.showStrMap(Data_Show.showInt))("test/Examples/example3")(Samph_Pars.firstPass(Data_Identity.monadIdentity))(Data_StrMap.fromFoldable(Data_Foldable.foldableArray)([ new Data_Tuple.Tuple("Foo", 5) ]))();
     fromFile(Data_StrMap.eqStrMap(Data_Eq.eqInt))(Data_StrMap.showStrMap(Data_Show.showInt))("test/Examples/example4")(Samph_Pars.firstPass(Data_Identity.monadIdentity))(Data_StrMap.fromFoldable(Data_Foldable.foldableArray)([ new Data_Tuple.Tuple("Rep", 1) ]))();
     fromFile(Data_StrMap.eqStrMap(Data_Eq.eqInt))(Data_StrMap.showStrMap(Data_Show.showInt))("test/Examples/example5")(Samph_Pars.firstPass(Data_Identity.monadIdentity))(Data_StrMap.fromFoldable(Data_Foldable.foldableArray)([ new Data_Tuple.Tuple("Rep", 1) ]))();
-    return fromFile(Data_StrMap.eqStrMap(Data_Eq.eqInt))(Data_StrMap.showStrMap(Data_Show.showInt))("test/Examples/example6")(Samph_Pars.firstPass(Data_Identity.monadIdentity))(Data_StrMap.fromFoldable(Data_Foldable.foldableArray)([ new Data_Tuple.Tuple("Start", 0), new Data_Tuple.Tuple("Rep", 10) ]))();
+    fromFile(Data_StrMap.eqStrMap(Data_Eq.eqInt))(Data_StrMap.showStrMap(Data_Show.showInt))("test/Examples/example6")(Samph_Pars.firstPass(Data_Identity.monadIdentity))(Data_StrMap.fromFoldable(Data_Foldable.foldableArray)([ new Data_Tuple.Tuple("Start", 0), new Data_Tuple.Tuple("Rep", 10) ]))();
+    return fromFile(Data_Eq.eqArray(Samph_Types.eqMach))(Data_Show.showArray(Samph_Types.showMach))("test/Examples/example1")(Samph_Pars.program(Data_Identity.monadIdentity))([ new Samph_Types.D0(Samph_Types.BL.value, 192), new Samph_Types.D0(Samph_Types.AL.value, 60), new Samph_Types.D4(Samph_Types.BL.value, Samph_Types.AL.value), new Samph_Types.DB(Samph_Types.AL.value, 123), new Samph_Types.C1(8), new Samph_Types.A4(Samph_Types.AL.value), new Samph_Types.A4(Samph_Types.BL.value), new Samph_Types.C0(2), new Samph_Types.D0(Samph_Types.CL.value, 64), new Samph_Types.D0(Samph_Types.AL.value, 32), new Samph_Types.D0(Samph_Types.BL.value, 192), new Samph_Types.D4(Samph_Types.BL.value, Samph_Types.AL.value), new Samph_Types.A4(Samph_Types.BL.value), new Samph_Types.A5(Samph_Types.CL.value), new Samph_Types.C2(11), new Samph_Types.C0(0) ])();
 };
 module.exports = {
     Positive: Positive, 

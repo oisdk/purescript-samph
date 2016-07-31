@@ -10,6 +10,8 @@ var Data_Maybe = require("../Data.Maybe");
 var Samph_Types = require("../Samph.Types");
 var Data_StrMap_ST = require("../Data.StrMap.ST");
 var Control_Monad_Eff = require("../Control.Monad.Eff");
+var Control_Monad_Reader = require("../Control.Monad.Reader");
+var Control_Monad_State = require("../Control.Monad.State");
 var Control_Monad_Trans = require("../Control.Monad.Trans");
 var Control_Monad_Eff_Console = require("../Control.Monad.Eff.Console");
 var Control_Alternative = require("../Control.Alternative");
@@ -21,6 +23,7 @@ var Text_Parsing_Parser_Language = require("../Text.Parsing.Parser.Language");
 var Data_StrMap = require("../Data.StrMap");
 var Text_Parsing_Parser_Token = require("../Text.Parsing.Parser.Token");
 var Data_Foldable = require("../Data.Foldable");
+var Data_Function = require("../Data.Function");
 var Data_Semiring = require("../Data.Semiring");
 var Control_Apply = require("../Control.Apply");
 var Data_Functor = require("../Data.Functor");
@@ -28,10 +31,30 @@ var Data_Semigroup = require("../Data.Semigroup");
 var Control_Bind = require("../Control.Bind");
 var Control_Applicative = require("../Control.Applicative");
 var Data_Ord = require("../Data.Ord");
+var Control_Monad_Reader_Class = require("../Control.Monad.Reader.Class");
 var Control_Alt = require("../Control.Alt");
-var Data_Function = require("../Data.Function");
 var Data_Show = require("../Data.Show");
+var Control_Monad_Reader_Trans = require("../Control.Monad.Reader.Trans");
+var Data_Identity = require("../Data.Identity");
+var ParserState = (function () {
+    function ParserState(value0) {
+        this.value0 = value0;
+    };
+    ParserState.create = function (value0) {
+        return new ParserState(value0);
+    };
+    return ParserState;
+})();
 var unops = [ "INC", "DEC", "NOT", "ROL", "ROR", "SHL", "SHR", "JMP", "JZ", "JNZ", "JS", "JNS", "JO", "JNO", "CALL", "INT", "PUSH", "POP", "IN", "OUT", "ORG", "DB" ];
+var unMon = function (dictMonad) {
+    return function (f) {
+        return function (v) {
+            return Data_Function.apply(Text_Parsing_Parser.ParserT)(function (s) {
+                return f(v(s));
+            });
+        };
+    };
+};
 var unBase = function (dictFoldable) {
     return function (b) {
         var f = function (n) {
@@ -127,6 +150,24 @@ var lit = function (dictMonad) {
 var op = function (dictMonad) {
     return (tokenParser(dictMonad)).reservedOp;
 };
+var jmp = function (dictMonad) {
+    return function (dictMonadReader) {
+        return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JMP"))(Samph_Types.C0.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JZ"))(Samph_Types.C1.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JNZ"))(Samph_Types.C2.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JS"))(Samph_Types.C3.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JNS"))(Samph_Types.C4.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JO"))(Samph_Types.C5.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JNO"))(Samph_Types.C6.create) ]))(function (v) {
+            return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(ident(dictMonad))(function (v1) {
+                return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Monad_Trans.lift(Text_Parsing_Parser.monadTransParserT)(dictMonad)(Control_Monad_Reader_Class.ask(dictMonadReader)))(function (v2) {
+                    var $64 = Data_StrMap.lookup(v1)(v2);
+                    if ($64 instanceof Data_Maybe.Nothing) {
+                        return Text_Parsing_Parser.fail(dictMonad)("Unrecognised label: " + v1);
+                    };
+                    if ($64 instanceof Data_Maybe.Just) {
+                        return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(v($64.value0));
+                    };
+                    throw new Error("Failed pattern match at Samph.Pars line 227, column 3 - line 229, column 31: " + [ $64.constructor.name ]);
+                });
+            });
+        });
+    };
+};
 var reserved = function (dictMonad) {
     return (tokenParser(dictMonad)).reserved;
 };
@@ -217,7 +258,7 @@ var mov = function (dictMonad) {
         return Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.D3.create(r))(addrReg(dictMonad));
     };
     var d2 = Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.D2.create)(addrLit(dictMonad));
-    var othOpts = Control_Apply.apply(Text_Parsing_Parser.applyParserT(dictMonad))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(dictMonad))(brackets(dictMonad)(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(d4)(d2)))(comma(dictMonad)))(reg(dictMonad));
+    var othOpts = Control_Apply.apply(Text_Parsing_Parser.applyParserT(dictMonad))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(d4)(d2))(comma(dictMonad)))(reg(dictMonad));
     var d1 = function (r) {
         return Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.D1.create(r))(addrLit(dictMonad));
     };
@@ -225,11 +266,35 @@ var mov = function (dictMonad) {
         return Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.D0.create(r))(lit(dictMonad));
     };
     var regOpts = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(dictMonad))(reg(dictMonad))(comma(dictMonad)))(function (v) {
-        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(d0(v))(brackets(dictMonad)(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(d3(v))(d1(v))));
+        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(d0(v))(d3(v)))(d1(v));
     });
     return Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(dictMonad))(op(dictMonad)("MOV"))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(regOpts)(othOpts));
 };
+var instructions$prime = function (dictMonad) {
+    return function (dictMonadReader) {
+        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Maybe.Just.create)(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ mov(dictMonad), cmp(dictMonad), jmp(dictMonad)(dictMonadReader), unArith(dictMonad), binArith(dictMonad) ])))(Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(labelDecl(dictMonad))(Data_Maybe.Nothing.value));
+    };
+};
+var instructions = function (dictMonad) {
+    return function (m) {
+        return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(unMon(dictMonad)(function (p) {
+            return Control_Applicative.pure(dictMonad["__superclass_Control.Applicative.Applicative_0"]())(Control_Monad_Reader.runReader(p)(m));
+        })(Data_Array.many(Text_Parsing_Parser.alternativeParserT(Control_Monad_Reader_Trans.monadReaderT(Data_Identity.monadIdentity)))(Text_Parsing_Parser.lazyParserT)(instructions$prime(Control_Monad_Reader_Trans.monadReaderT(Data_Identity.monadIdentity))(Control_Monad_Reader_Trans.monadReaderReaderT(Data_Identity.monadIdentity)))))(function (v) {
+            return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(reserved(dictMonad)("END"))(function () {
+                return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(Data_Array.catMaybes(v));
+            });
+        });
+    };
+};
+var program = function (dictMonad) {
+    return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(wSpace(dictMonad))(function () {
+        return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.lookAhead(dictMonad)(firstPass(dictMonad)))(function (v) {
+            return instructions(dictMonad)(v);
+        });
+    });
+};
 module.exports = {
+    ParserState: ParserState, 
     addrLit: addrLit, 
     addrReg: addrReg, 
     binArith: binArith, 
@@ -242,6 +307,9 @@ module.exports = {
     hex: hex, 
     ident: ident, 
     instruction: instruction, 
+    instructions: instructions, 
+    "instructions'": instructions$prime, 
+    jmp: jmp, 
     labelDecl: labelDecl, 
     lex: lex, 
     lit: lit, 
@@ -250,6 +318,7 @@ module.exports = {
     names: names, 
     nops: nops, 
     op: op, 
+    program: program, 
     reg: reg, 
     regs: regs, 
     reserved: reserved, 
@@ -258,6 +327,7 @@ module.exports = {
     tokenParser: tokenParser, 
     unArith: unArith, 
     unBase: unBase, 
+    unMon: unMon, 
     unops: unops, 
     wSpace: wSpace
 };

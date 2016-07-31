@@ -86,8 +86,8 @@ main = do
   parseExample addrLit (AddrLit 10) "[A]"
   parseExample addrReg (AddrReg AL) "[AL ]"
   parseExample instruction "AL 4" "ADD AL, 4"
-  parseExample instruction "AL 4" "MUL [AL],4"
-  parseExample instruction "BL AL" "SUB [BL],AL"
+  parseExample instruction "[AL] 4" "MUL [AL],4"
+  parseExample instruction "[BL] AL" "SUB [BL],AL"
   parseExample labelDecl "jump" "jump :  "
   parseExample instruction "" "CLO"
   parseExample instruction "Clear" "JZ Clear"
@@ -107,3 +107,20 @@ main = do
     (fromFoldable [ Tuple "Rep" 1 ])
   fromFile "test/Examples/example6" firstPass
     (fromFoldable [ Tuple "Start" 0, Tuple "Rep" 10 ])
+  fromFile "test/Examples/example1" program
+    [ D0 BL (Lit 192)
+    , D0 AL (Lit 60)
+    , D4 (AddrReg BL) AL
+    , DB AL (Lit 123)
+    , C1 (Lit 8)
+    , A4 AL
+    , A4 BL
+    , C0 (Lit 2)
+    , D0 CL (Lit 64)
+    , D0 AL (Lit 32)
+    , D0 BL (Lit 192)
+    , D4 (AddrReg BL) AL
+    , A4 BL
+    , A5 CL
+    , C2 (Lit 11)
+    , C0 (Lit 0)]
