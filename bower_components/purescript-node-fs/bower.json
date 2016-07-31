@@ -1,0 +1,37 @@
+{
+  "name": "purescript-node-fs",
+  "homepage": "https://github.com/purescript-contrib/purescript-node-fs",
+  "description": "Node.js file system operations",
+  "keywords": [
+    "purescript"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/purescript-node/purescript-node-fs"
+  },
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules",
+    "tmp",
+    "output",
+    "bower.json",
+    "package.json"
+  ],
+  "dependencies": {
+    "purescript-datetime": "^1.0.0",
+    "purescript-foreign": "^1.0.0",
+    "purescript-node-buffer": "^1.0.0",
+    "purescript-node-path": "^1.0.0",
+    "purescript-unsafe-coerce": "^1.0.0",
+    "purescript-nullable": "^1.0.0",
+    "purescript-node-streams": "^1.0.0",
+    "purescript-exceptions": "^1.0.0",
+    "purescript-js-date": "^1.0.0",
+    "purescript-globals": "^1.0.0"
+  },
+  "devDependencies": {
+    "purescript-console": "^1.0.0"
+  }
+}

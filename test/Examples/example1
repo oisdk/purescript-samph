@@ -1,0 +1,28 @@
+; ----- A Program to display ASCII characters -----------------
+; ----- Here it is tidied up. This version is annotated. ------
+; ----- This makes it possible to understand. -----------------
+; ----- The labels have been given more readable names too. ---
+
+Start: 
+	MOV BL,C0	; Make BL point to video RAM
+	MOV AL,3C	; 3C is the ASCII code of the 'less than' symbol
+Here: 
+	MOV [BL],AL	; Copy the ASCII code in AL to the RAM location that BL is pointing to.
+	CMP AL,7B	; Compare AL with '{'
+	JZ Clear	; If AL contained '{' jump to Clear:
+	INC AL		; Put the next ASCII code into AL
+	INC BL		; Make BL point to the next video RAM location
+	JMP Here	; Jump back to Here
+Clear:
+	MOV CL,40	; We are going to repeat 40 (hex) times
+	MOV AL,20	; The ASCII code of the space character
+	MOV BL,C0 	; The address of the start of video RAM
+Loop: 
+	MOV [BL],AL	; Copy the ASCII space in AL to the video RAM that BL is pointing to.
+	INC BL		; Make BL point to the next video RAM location
+	DEC CL		; CL is counting down towards zero
+	JNZ Loop	; If CL is not zero jump back to Loop
+	JMP Start	; CL was zero so jump back to the Start and do it all again.
+	
+	END
+; -------------------------------------------------------------

@@ -1,0 +1,43 @@
+{
+  "name": "purescript-quickcheck",
+  "homepage": "https://github.com/purescript/purescript-quickcheck",
+  "license": "MIT",
+  "authors": [
+    "John A. De Goes <john@degoes.net> (http://degoes.net)",
+    "Phil Freeman <freeman.phil@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/purescript/purescript-quickcheck.git"
+  },
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules",
+    "output",
+    "test",
+    "bower.json",
+    "package.json"
+  ],
+  "dependencies": {
+    "purescript-arrays": "^1.0.0",
+    "purescript-console": "^1.0.0",
+    "purescript-either": "^1.0.0",
+    "purescript-exceptions": "^1.0.0",
+    "purescript-lists": "^1.0.0",
+    "purescript-random": "^1.0.0",
+    "purescript-strings": "^1.0.0",
+    "purescript-transformers": "^1.0.0"
+  },
+  "version": "1.0.0",
+  "_release": "1.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.0",
+    "commit": "7872acf659faf709e9ccda425a5e759f7019b136"
+  },
+  "_source": "https://github.com/purescript/purescript-quickcheck.git",
+  "_target": "^1.0.0",
+  "_originalSource": "purescript-quickcheck",
+  "_direct": true
+}

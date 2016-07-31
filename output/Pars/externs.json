@@ -1,0 +1,1 @@
+{"efExports":[],"efImports":[{"eiImportedAs":null,"eiModule":["Prim"],"eiImportType":{"Implicit":[]}},{"eiImportedAs":null,"eiModule":["Text","Parsing","Parser","Token"],"eiImportType":{"Implicit":[]}}],"efTypeFixities":[],"efVersion":"0.9.1","efDeclarations":[],"efFixities":[],"efModuleName":["Pars"]}
