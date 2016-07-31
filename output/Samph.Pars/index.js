@@ -96,6 +96,9 @@ var comma = function (dictMonad) {
 var ident = function (dictMonad) {
     return (tokenParser(dictMonad)).identifier;
 };
+var ident$prime = function (dictMonad) {
+    return Text_Parsing_Parser_Combinators["try"](((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(dictMonad))(ident(dictMonad))(Text_Parsing_Parser_Combinators.notFollowedBy(dictMonad)(colon(dictMonad))));
+};
 var labelDecl = function (dictMonad) {
     return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(ident(dictMonad))("label"))(function (v) {
         return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(colon(dictMonad))(function () {
@@ -141,21 +144,27 @@ var jmp = function (dictMonad) {
         return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JMP"))(Samph_Types.C0.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JZ"))(Samph_Types.C1.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JNZ"))(Samph_Types.C2.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JS"))(Samph_Types.C3.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JNS"))(Samph_Types.C4.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JO"))(Samph_Types.C5.create), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(op(dictMonad)("JNO"))(Samph_Types.C6.create) ]))(function (v) {
             return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(ident(dictMonad))(function (v1) {
                 return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Monad_Trans.lift(Text_Parsing_Parser.monadTransParserT)(dictMonad)(Control_Monad_Reader_Class.ask(dictMonadReader)))(function (v2) {
-                    var $64 = Data_StrMap.lookup(v1)(v2);
-                    if ($64 instanceof Data_Maybe.Nothing) {
+                    var $70 = Data_StrMap.lookup(v1)(v2);
+                    if ($70 instanceof Data_Maybe.Nothing) {
                         return Text_Parsing_Parser.fail(dictMonad)("Unrecognised label: " + v1);
                     };
-                    if ($64 instanceof Data_Maybe.Just) {
-                        return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(v($64.value0));
+                    if ($70 instanceof Data_Maybe.Just) {
+                        return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(v($70.value0));
                     };
-                    throw new Error("Failed pattern match at Samph.Pars line 238, column 3 - line 240, column 31: " + [ $64.constructor.name ]);
+                    throw new Error("Failed pattern match at Samph.Pars line 247, column 3 - line 249, column 31: " + [ $70.constructor.name ]);
                 });
             });
         });
     };
 };
+var nop = function (dictMonad) {
+    return Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)(Data_Functor.map(Data_Functor.functorArray)(op(dictMonad))(Data_Maybe.fromMaybe([  ])(Data_Array.init(nops)))))("");
+};
 var reserved = function (dictMonad) {
     return (tokenParser(dictMonad)).reserved;
+};
+var misc = function (dictMonad) {
+    return Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("HALT"))(Samph_Types.O0.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("CLO"))(Samph_Types.FE.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("NOP"))(Samph_Types.FF.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("STI"))(Samph_Types.FC.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("CLI"))(Samph_Types.FD.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("RET"))(Samph_Types.CB.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("IRET"))(Samph_Types.CD.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("PUSHF"))(Samph_Types.EA.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("POPF"))(Samph_Types.EB.value) ]);
 };
 var reg = function (dictMonad) {
     return Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("AL"))(Samph_Types.AL.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("BL"))(Samph_Types.BL.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("CL"))(Samph_Types.CL.value), Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(reserved(dictMonad)("DL"))(Samph_Types.DL.value) ]))("a register");
@@ -193,36 +202,33 @@ var addrLit = function (dictMonad) {
         return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(v);
     })))("An address literal");
 };
-var cmp = function (dictMonad) {
-    return Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(dictMonad))(op(dictMonad)("CMP"))(Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(dictMonad))(reg(dictMonad))(comma(dictMonad)))(function (v) {
-        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.DA.create(v))(reg(dictMonad)))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.DB.create(v))(lit(dictMonad))))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.DC.create(v))(addrLit(dictMonad)));
-    }));
+var arg = function (dictMonad) {
+    return Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Show.show(Samph_Types.showAddrReg))(Text_Parsing_Parser_Combinators["try"](((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(addrReg(dictMonad))), Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Show.show(Samph_Types.showAddrLit))(Text_Parsing_Parser_Combinators["try"](((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(addrLit(dictMonad))), Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Show.show(Samph_Types.showReg))(reg(dictMonad)), Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Show.show(Samph_Types.showLit))(lit(dictMonad)) ]);
 };
-var instruction = function (dictMonad) {
-    var nop = Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)(Data_Functor.map(Data_Functor.functorArray)(op(dictMonad))(Data_Maybe.fromMaybe([  ])(Data_Array.init(nops)))))("");
-    var ident$prime = Text_Parsing_Parser_Combinators["try"](((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(dictMonad))(ident(dictMonad))(Text_Parsing_Parser_Combinators.notFollowedBy(dictMonad)(colon(dictMonad))));
-    var arg = Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Show.show(Samph_Types.showAddrReg))(Text_Parsing_Parser_Combinators["try"](((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(addrReg(dictMonad))), Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Show.show(Samph_Types.showAddrLit))(Text_Parsing_Parser_Combinators["try"](((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(addrLit(dictMonad))), Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Show.show(Samph_Types.showReg))(reg(dictMonad)), Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Show.show(Samph_Types.showLit))(lit(dictMonad)) ]);
-    var binop = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)(Data_Functor.map(Data_Functor.functorArray)(op(dictMonad))(binops)))(function (v) {
-        return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(ident$prime)(arg))(function (v1) {
+var binop = function (dictMonad) {
+    return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)(Data_Functor.map(Data_Functor.functorArray)(op(dictMonad))(binops)))(function (v) {
+        return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(ident$prime(dictMonad))(arg(dictMonad)))(function (v1) {
             return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(comma(dictMonad))(function () {
-                return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(ident$prime)(arg))(function (v2) {
+                return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(ident$prime(dictMonad))(arg(dictMonad)))(function (v2) {
                     return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(v1 + (" " + v2));
                 });
             });
         });
     });
-    var unop = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)(Data_Functor.map(Data_Functor.functorArray)(op(dictMonad))(unops)))(function (v) {
-        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(ident$prime)(arg);
+};
+var unop = function (dictMonad) {
+    return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)(Data_Functor.map(Data_Functor.functorArray)(op(dictMonad))(unops)))(function (v) {
+        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(ident$prime(dictMonad))(arg(dictMonad));
     });
-    return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(binop)(unop))(nop);
 };
 var firstPass = function (dictMonad) {
     var instr = function (i) {
-        return Control_Bind.bind(Text_Parsing_Parser.bindParserT(Control_Monad_Eff.monadEff))(instruction(Control_Monad_Eff.monadEff))(function () {
+        var globInc = function (n) {
             return Control_Monad_Trans.lift(Text_Parsing_Parser.monadTransParserT)(Control_Monad_Eff.monadEff)(Data_Functor["void"](Control_Monad_Eff.functorEff)(Control_Monad_ST.modifySTRef(i)(function (v) {
-                return v + 1 | 0;
+                return v + n | 0;
             })));
-        });
+        };
+        return Control_Alt.alt(Text_Parsing_Parser.altParserT(Control_Monad_Eff.monadEff))(Control_Alt.alt(Text_Parsing_Parser.altParserT(Control_Monad_Eff.monadEff))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Control_Monad_Eff.monadEff))(binop(Control_Monad_Eff.monadEff))(globInc(3)))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Control_Monad_Eff.monadEff))(unop(Control_Monad_Eff.monadEff))(globInc(2))))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(Control_Monad_Eff.monadEff))(nop(Control_Monad_Eff.monadEff))(globInc(1)));
     };
     var firstPass$prime = Control_Bind.bind(Text_Parsing_Parser.bindParserT(Control_Monad_Eff.monadEff))(Control_Monad_Trans.lift(Text_Parsing_Parser.monadTransParserT)(Control_Monad_Eff.monadEff)(Data_StrMap_ST["new"]))(function (v) {
         return Control_Bind.bind(Text_Parsing_Parser.bindParserT(Control_Monad_Eff.monadEff))(Control_Monad_Trans.lift(Text_Parsing_Parser.monadTransParserT)(Control_Monad_Eff.monadEff)(Control_Monad_ST.newSTRef(0)))(function (v1) {
@@ -237,6 +243,14 @@ var firstPass = function (dictMonad) {
         return Control_Applicative.pure(dictMonad["__superclass_Control.Applicative.Applicative_0"]())(Control_Monad_Eff.runPure(Text_Parsing_Parser.unParserT(firstPass$prime)(s)));
     };
     return Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(dictMonad))(wSpace(dictMonad))(p);
+};
+var instruction = function (dictMonad) {
+    return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(binop(dictMonad))(unop(dictMonad)))(nop(dictMonad));
+};
+var cmp = function (dictMonad) {
+    return Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(dictMonad))(op(dictMonad)("CMP"))(Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Apply.applyFirst(Text_Parsing_Parser.applyParserT(dictMonad))(reg(dictMonad))(comma(dictMonad)))(function (v) {
+        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.DA.create(v))(reg(dictMonad)))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.DB.create(v))(lit(dictMonad))))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.DC.create(v))(addrLit(dictMonad)));
+    }));
 };
 var mov = function (dictMonad) {
     var d4 = Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Samph_Types.D4.create)(addrReg(dictMonad));
@@ -258,7 +272,7 @@ var mov = function (dictMonad) {
 };
 var instructions$prime = function (dictMonad) {
     return function (dictMonadReader) {
-        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Maybe.Just.create)(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ mov(dictMonad), cmp(dictMonad), jmp(dictMonad)(dictMonadReader), unArith(dictMonad), binArith(dictMonad) ])))(Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(labelDecl(dictMonad))(Data_Maybe.Nothing.value));
+        return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(Data_Maybe.Just.create)(Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(dictMonad)([ misc(dictMonad), mov(dictMonad), cmp(dictMonad), jmp(dictMonad)(dictMonadReader), unArith(dictMonad), binArith(dictMonad) ])))(Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]()))(labelDecl(dictMonad))(Data_Maybe.Nothing.value));
     };
 };
 var instructions = function (dictMonad) {
@@ -282,7 +296,9 @@ var program = function (dictMonad) {
 module.exports = {
     addrLit: addrLit, 
     addrReg: addrReg, 
+    arg: arg, 
     binArith: binArith, 
+    binop: binop, 
     binops: binops, 
     brackets: brackets, 
     cmp: cmp, 
@@ -291,6 +307,7 @@ module.exports = {
     firstPass: firstPass, 
     hex: hex, 
     ident: ident, 
+    "ident'": ident$prime, 
     instruction: instruction, 
     instructions: instructions, 
     "instructions'": instructions$prime, 
@@ -299,8 +316,10 @@ module.exports = {
     lex: lex, 
     lit: lit, 
     logLabel: logLabel, 
+    misc: misc, 
     mov: mov, 
     names: names, 
+    nop: nop, 
     nops: nops, 
     op: op, 
     program: program, 
@@ -313,6 +332,7 @@ module.exports = {
     unArith: unArith, 
     unBase: unBase, 
     unMon: unMon, 
+    unop: unop, 
     unops: unops, 
     wSpace: wSpace
 };

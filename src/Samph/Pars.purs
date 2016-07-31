@@ -135,22 +135,32 @@ logLabel i m = do
 
 instruction :: forall m. Monad m
             => ParserT String m String
-instruction = binop <|> unop <|> nop where
-  binop = do
-    _ <- choice (map op binops)
-    x <- ident' <|> arg
-    comma
-    y <- ident' <|> arg
-    pure (x <> " " <> y)
-  unop = do
-    _ <- choice (map op unops)
-    ident' <|> arg
-  nop = choice (map op (fromMaybe [] (init nops))) $> ""
-  ident' = try (ident <* notFollowedBy colon)
-  arg = choice [ map show (try addrReg)
-               , map show (try addrLit)
-               , map show reg
-               , map show lit ]
+instruction = binop <|> unop <|> nop
+
+binop :: forall m. Monad m => ParserT String m String
+binop = do
+  _ <- choice (map op binops)
+  x <- ident' <|> arg
+  comma
+  y <- ident' <|> arg
+  pure (x <> " " <> y)
+
+unop :: forall m. Monad m => ParserT String m String
+unop = do
+  _ <- choice (map op unops)
+  ident' <|> arg
+
+nop :: forall m. Monad m => ParserT String m String
+nop = choice (map op (fromMaybe [] (init nops))) $> ""
+
+ident' :: forall m. Monad m => ParserT String m String
+ident' = try (ident <* notFollowedBy colon)
+
+arg :: forall m. Monad m => ParserT String m String
+arg = choice [ map show (try addrReg)
+              , map show (try addrLit)
+              , map show reg
+              , map show lit ]
 
 unMon :: forall n m a. Monad m => (forall b. n b -> m b) -> ParserT String n a -> ParserT String m a
 unMon f (ParserT p) = ParserT $ \s -> f (p s)
@@ -159,9 +169,8 @@ firstPass :: forall m. Monad m => ParserT String m (StrMap Int)
 firstPass = wSpace *> ParserT p where
   p s = pure (runPure (runST (unParserT firstPass' s)))
   instr :: forall h. STRef h Int -> ParserT String (Eff (st :: ST h)) Unit
-  instr i = do
-    instruction
-    lift (void (modifySTRef i (_ + 1)))
+  instr i = (binop *> globInc 3) <|> (unop *> globInc 2) <|> (nop *> globInc 1)
+    where globInc n= lift (void (modifySTRef i (_ + n)))
   firstPass' :: forall h. ParserT String (Eff (st :: ST h)) (StrMap Int)
   firstPass' = do
     m <- lift new
@@ -239,9 +248,21 @@ jmp = do
     Nothing -> fail ("Unrecognised label: " <> name)
     Just n -> pure (c (Lit n))
 
+misc :: forall m. Monad m => ParserT String m MachineCode
+misc = choice
+  [ reserved "HALT"  $> O0
+  , reserved "CLO"   $> FE
+  , reserved "NOP"   $> FF
+  , reserved "STI"   $> FC
+  , reserved "CLI"   $> FD
+  , reserved "RET"   $> CB
+  , reserved "IRET"  $> CD
+  , reserved "PUSHF" $> EA
+  , reserved "POPF"  $> EB ]
+
 instructions' :: forall m. (Monad m, MonadReader (StrMap Int) m)
              => ParserT String m (Maybe MachineCode)
-instructions' = map Just (choice [mov, cmp, jmp, unArith, binArith]) <|> labelDecl $> Nothing
+instructions' = map Just (choice [misc, mov, cmp, jmp, unArith, binArith]) <|> labelDecl $> Nothing
 
 instructions :: forall m. Monad m
              => StrMap Int

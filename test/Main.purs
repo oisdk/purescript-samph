@@ -58,35 +58,35 @@ checkHexParse (Positive n) =
 checkUnBase :: Positive -> Result
 checkUnBase (Positive n) = n === (unBase 10 <<< slowToBase) n
 
-once :: forall a. Testable a => a -> Quick Unit
+once :: forall a. Testable a => a -> Quick
 once = quickCheck' 1
 
-type Quick a = forall e.
+type Quick = forall e.
   Eff ( err :: EXCEPTION
       , console :: CONSOLE
       , random :: RANDOM
-      | e ) a
+      | e ) Unit
 
-type QuickFS a = forall e.
+type QuickFS = forall e.
   Eff ( err :: EXCEPTION
       , console :: CONSOLE
       , random :: RANDOM
       , fs :: FS
-      | e ) a
+      | e ) Unit
 
 parseExample :: forall a. (Eq a, Show a)
-             => Parser String a -> a -> String -> Quick Unit
+             => Parser String a -> a -> String -> Quick
 parseExample prs res str =
   once (Right res === runParser str prs)
 
 fromFile :: forall a. (Eq a, Show a)
          => String -> Parser String a -> a
-         -> QuickFS Unit
+         -> QuickFS
 fromFile loc prs res = do
   file <- readTextFile UTF8 loc
   parseExample prs res file
 
-main :: QuickFS Unit
+main :: QuickFS
 main = do
   quickCheck checkUnBase
   quickCheck checkHexParse
@@ -110,33 +110,33 @@ main = do
   parseExample instruction "Start" "JMP Start"
   fromFile "test/Examples/example1" firstPass
     (fromFoldable [ Tuple "Start" 0
-                  , Tuple "Here" 2
-                  , Tuple "Clear" 8
-                  , Tuple "Loop" 11])
+                  , Tuple "Here" 6
+                  , Tuple "Clear" 20
+                  , Tuple "Loop" 29])
   fromFile "test/Examples/example2" firstPass
     (fromFoldable [ Tuple "Start" 1 ])
   fromFile "test/Examples/example3" firstPass
-    (fromFoldable [ Tuple "Foo" 5 ])
+    (fromFoldable [ Tuple "Foo" 13 ])
   fromFile "test/Examples/example4" firstPass
-    (fromFoldable [ Tuple "Rep" 1 ])
+    (fromFoldable [ Tuple "Rep" 3 ])
   fromFile "test/Examples/example5" firstPass
     (fromFoldable [ Tuple "Rep" 1 ])
   fromFile "test/Examples/example6" firstPass
-    (fromFoldable [ Tuple "Start" 0, Tuple "Rep" 10 ])
+    (fromFoldable [ Tuple "Start" 0, Tuple "Rep" 22 ])
   fromFile "test/Examples/example1" program
     [ D0 BL (Lit 192)
     , D0 AL (Lit 60)
     , D4 (AddrReg BL) AL
     , DB AL (Lit 123)
-    , C1 (Lit 8)
+    , C1 (Lit 20)
     , A4 AL
     , A4 BL
-    , C0 (Lit 2)
+    , C0 (Lit 6)
     , D0 CL (Lit 64)
     , D0 AL (Lit 32)
     , D0 BL (Lit 192)
     , D4 (AddrReg BL) AL
     , A4 BL
     , A5 CL
-    , C2 (Lit 11)
+    , C2 (Lit 29)
     , C0 (Lit 0) ]
