@@ -10,6 +10,7 @@ import Data.Maybe
 import Samph.Types
 import Data.StrMap.ST
 import Control.Monad.Eff
+import Control.Monad.Reader
 import Control.Monad.Trans
 import Control.Monad.Eff.Console
 import Control.Alternative
@@ -153,3 +154,73 @@ firstPass = wSpace *> ParserT p where
     skipMany (instr i <|> logLabel i m)
     reserved "END"
     lift (freezeST m)
+
+revAp :: forall f a b. Apply f => f a -> f (a -> b) -> f b
+revAp a b = (\x f -> f x) <$> a <*> b
+
+infixl 4 revAp as <**>
+
+binArith :: forall m. Monad m => ParserT String m MachineCode
+binArith = choice
+  [ arith' "ADD" A0 B0
+  , arith' "SUB" A1 B1
+  , arith' "MUL" A2 B2
+  , arith' "DIV" A3 B3
+  , arith' "MOD" A6 B6
+  , arith' "AND" AA BA
+  , arith' "OR"  AB BB
+  , arith' "XOR" AC BC
+  ] where
+    arith' n a b = do
+      op n *>
+      ((reg <* comma) <**>
+      (map (flip a) reg <|>
+      map (\y x -> b x y) lit))
+
+unArith :: forall m. Monad m => ParserT String m MachineCode
+unArith = choice
+  [ un' "INC"  A4
+  , un' "DEC"  A5
+  , un' "NOT"  AD
+  , un' "ROL"  A9
+  , un' "ROR"  B9
+  , un' "SHL"  C9
+  , un' "SHR"  D9
+  , un' "PUSH" E0
+  , un' "POP"  E1
+  ] where
+    un' n c = op n *> map c reg
+
+mov ::  forall m. Monad m => ParserT String m MachineCode
+mov = op "MOV" *> (regOpts <|> othOpts) where
+  regOpts = do
+    r <- reg <* comma
+    d0 r <|> brackets (d3 r <|> d1 r)
+  othOpts = brackets (d4 <|> d2) <* comma <*> reg
+  d0 r = D0 r <$> lit
+  d3 r = D3 r <$> addrReg
+  d1 r = D1 r <$> addrLit
+  d4 = map D4 addrReg
+  d2 = map D2 addrLit
+
+cmp :: forall m. Monad m => ParserT String m MachineCode
+cmp = op "CMP" *> do
+  r <- reg <* comma
+  DA r <$> reg <|> DB r <$> lit <|> DC r <$> addrLit
+
+-- jmp :: forall m s. MonadReader (StrMap Int) m
+--     => ParserT String m MachineCode
+-- jmp = do
+--   c <- choice [ op "JMP" $> C0
+--               , op "JZ"  $> C1
+--               , op "JNZ" $> C2
+--               , op "JS"  $> C3
+--               , op "JNS" $> C4
+--               , op "JO"  $> C5
+--               , op "JNO" $> C6 ]
+--   name <- ident
+--   locs <- ask
+--   case lookup name locs of
+--     Nothing -> fail ("Unrecognised label: " <> name)
+--     Just n -> pure (c n)
+

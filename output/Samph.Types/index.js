@@ -3,6 +3,7 @@
 var Prelude = require("../Prelude");
 var Data_Show = require("../Data.Show");
 var Data_Eq = require("../Data.Eq");
+var Data_Semigroup = require("../Data.Semigroup");
 var AL = (function () {
     function AL() {
 
@@ -595,6 +596,168 @@ var showAddrReg = new Data_Show.Show(function (v) {
 var showAddrLit = new Data_Show.Show(function (v) {
     return Data_Show.show(Data_Show.showInt)(v);
 });
+var showMach = new Data_Show.Show(function (v) {
+    if (v instanceof A0) {
+        return "A0 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof A1) {
+        return "A1 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof A2) {
+        return "A2 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof A3) {
+        return "A3 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof A4) {
+        return "A4 " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof A5) {
+        return "A5 " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof A6) {
+        return "A6 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof AA) {
+        return "AA " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof AB) {
+        return "AB " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof AC) {
+        return "AC " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof AD) {
+        return "AD " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof A9) {
+        return "A9 " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof B9) {
+        return "B9 " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof C9) {
+        return "C9 " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof D9) {
+        return "D9 " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof B0) {
+        return "B0 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof B1) {
+        return "B1 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof B2) {
+        return "B2 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof B3) {
+        return "B3 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof B6) {
+        return "B6 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof BA) {
+        return "BA " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof BB) {
+        return "BB " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof BC) {
+        return "BC " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof C0) {
+        return "C0 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof C1) {
+        return "C1 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof C2) {
+        return "C2 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof C3) {
+        return "C3 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof C4) {
+        return "C4 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof C5) {
+        return "C5 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof C6) {
+        return "C6 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof CA) {
+        return "CA " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof CB) {
+        return "CB";
+    };
+    if (v instanceof CC) {
+        return "CC " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof CD) {
+        return "CD";
+    };
+    if (v instanceof E0) {
+        return "E0 " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof E1) {
+        return "E1 " + Data_Show.show(showReg)(v.value0);
+    };
+    if (v instanceof EA) {
+        return "EA";
+    };
+    if (v instanceof EB) {
+        return "EB";
+    };
+    if (v instanceof F0) {
+        return "F0 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof F1) {
+        return "F1 " + Data_Show.show(showLit)(v.value0);
+    };
+    if (v instanceof FE) {
+        return "FE";
+    };
+    if (v instanceof O0) {
+        return "O0";
+    };
+    if (v instanceof FF) {
+        return "FF";
+    };
+    if (v instanceof FC) {
+        return "FC";
+    };
+    if (v instanceof FD) {
+        return "FD";
+    };
+    if (v instanceof D0) {
+        return "D0 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof D1) {
+        return "D1 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showAddrLit)(v.value1)));
+    };
+    if (v instanceof D2) {
+        return "D2 " + (Data_Show.show(showAddrLit)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof D3) {
+        return "D3 " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showAddrReg)(v.value1)));
+    };
+    if (v instanceof D4) {
+        return "D4 " + (Data_Show.show(showAddrReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof DA) {
+        return "DA " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showReg)(v.value1)));
+    };
+    if (v instanceof DB) {
+        return "DB " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showLit)(v.value1)));
+    };
+    if (v instanceof DC) {
+        return "DC " + (Data_Show.show(showReg)(v.value0) + (" " + Data_Show.show(showAddrLit)(v.value1)));
+    };
+    throw new Error("Failed pattern match at Samph.Types line 100, column 3 - line 100, column 51: " + [ v.constructor.name ]);
+});
 var eqReg = new Data_Eq.Eq(function (v) {
     return function (v1) {
         if (v instanceof AL && v1 instanceof AL) {
@@ -695,5 +858,6 @@ module.exports = {
     showAddrLit: showAddrLit, 
     eqAddrLit: eqAddrLit, 
     showAddrReg: showAddrReg, 
-    eqAddrReg: eqAddrReg
+    eqAddrReg: eqAddrReg, 
+    showMach: showMach
 };
