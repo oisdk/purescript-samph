@@ -11,20 +11,15 @@ var Samph_Types = require("../Samph.Types");
 var Data_StrMap_ST = require("../Data.StrMap.ST");
 var Control_Monad_Eff = require("../Control.Monad.Eff");
 var Control_Monad_Reader = require("../Control.Monad.Reader");
-var Control_Monad_State = require("../Control.Monad.State");
 var Control_Monad_Trans = require("../Control.Monad.Trans");
-var Control_Monad_Eff_Console = require("../Control.Monad.Eff.Console");
 var Control_Alternative = require("../Control.Alternative");
 var Control_Monad_ST = require("../Control.Monad.ST");
-var Data_Either = require("../Data.Either");
-var Text_Parsing_Parser_Pos = require("../Text.Parsing.Parser.Pos");
 var Data_Char_Unicode = require("../Data.Char.Unicode");
-var Text_Parsing_Parser_Language = require("../Text.Parsing.Parser.Language");
 var Data_StrMap = require("../Data.StrMap");
 var Text_Parsing_Parser_Token = require("../Text.Parsing.Parser.Token");
-var Data_Foldable = require("../Data.Foldable");
 var Data_Function = require("../Data.Function");
 var Data_Semiring = require("../Data.Semiring");
+var Data_Foldable = require("../Data.Foldable");
 var Control_Apply = require("../Control.Apply");
 var Data_Functor = require("../Data.Functor");
 var Data_Semigroup = require("../Data.Semigroup");
@@ -36,15 +31,6 @@ var Control_Alt = require("../Control.Alt");
 var Data_Show = require("../Data.Show");
 var Control_Monad_Reader_Trans = require("../Control.Monad.Reader.Trans");
 var Data_Identity = require("../Data.Identity");
-var ParserState = (function () {
-    function ParserState(value0) {
-        this.value0 = value0;
-    };
-    ParserState.create = function (value0) {
-        return new ParserState(value0);
-    };
-    return ParserState;
-})();
 var unops = [ "INC", "DEC", "NOT", "ROL", "ROR", "SHL", "SHR", "JMP", "JZ", "JNZ", "JS", "JNS", "JO", "JNO", "CALL", "INT", "PUSH", "POP", "IN", "OUT", "ORG", "DB" ];
 var unMon = function (dictMonad) {
     return function (f) {
@@ -162,7 +148,7 @@ var jmp = function (dictMonad) {
                     if ($64 instanceof Data_Maybe.Just) {
                         return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(v($64.value0));
                     };
-                    throw new Error("Failed pattern match at Samph.Pars line 227, column 3 - line 229, column 31: " + [ $64.constructor.name ]);
+                    throw new Error("Failed pattern match at Samph.Pars line 238, column 3 - line 240, column 31: " + [ $64.constructor.name ]);
                 });
             });
         });
@@ -294,7 +280,6 @@ var program = function (dictMonad) {
     });
 };
 module.exports = {
-    ParserState: ParserState, 
     addrLit: addrLit, 
     addrReg: addrReg, 
     binArith: binArith, 

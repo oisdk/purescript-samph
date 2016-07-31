@@ -11,7 +11,6 @@ var Control_Monad_Eff = require("../Control.Monad.Eff");
 var Control_Monad_Eff_Console = require("../Control.Monad.Eff.Console");
 var Control_Monad_Eff_Random = require("../Control.Monad.Eff.Random");
 var Control_Monad_Eff_Exception = require("../Control.Monad.Eff.Exception");
-var Data_Semigroup = require("../Data.Semigroup");
 var Data_Int = require("../Data.Int");
 var Data_StrMap = require("../Data.StrMap");
 var Data_Either = require("../Data.Either");
@@ -132,6 +131,7 @@ var arbPos = new Test_QuickCheck_Arbitrary.Arbitrary(Data_Functor.map(Control_Mo
 var main = function __do() {
     Test_QuickCheck.quickCheck(Test_QuickCheck.testableFunction(arbPos)(Test_QuickCheck.testableResult))(checkUnBase)();
     Test_QuickCheck.quickCheck(Test_QuickCheck.testableFunction(arbPos)(Test_QuickCheck.testableResult))(checkHexParse)();
+    once(Test_QuickCheck.testableResult)(Test_QuickCheck.assertEquals(Samph_Types.eqLit)(Samph_Types.showLit)(Data_Semiring.add(Samph_Types.semiRingLit)(255)(1))(0))();
     parseExample(Samph_Types.eqReg)(Samph_Types.showReg)(Samph_Pars.reg(Data_Identity.monadIdentity))(Samph_Types.AL.value)("AL")();
     parseExample(Samph_Types.eqReg)(Samph_Types.showReg)(Samph_Pars.reg(Data_Identity.monadIdentity))(Samph_Types.BL.value)("BL")();
     parseExample(Samph_Types.eqReg)(Samph_Types.showReg)(Samph_Pars.reg(Data_Identity.monadIdentity))(Samph_Types.CL.value)("CL")();

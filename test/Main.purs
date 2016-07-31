@@ -1,24 +1,23 @@
 module Test.Main where
 
-import Prelude
-import Test.QuickCheck
-import Test.QuickCheck.Arbitrary
-import Samph.Pars
-import Samph.Types
-import Data.String
-import Data.Tuple
-import Control.Monad.Eff
-import Control.Monad.Eff.Console
-import Control.Monad.Eff.Random
-import Control.Monad.Eff.Exception
-import Data.Semigroup
-import Data.Int
-import Data.StrMap
-import Data.Either
+import Prelude (class Show, class Eq, class Ord, Unit, bind, negate, show, map, compare, eq, (<<<), (*), (<), (<$>), (+))
+import Test.QuickCheck (class Testable, Result, quickCheck, quickCheck', (===))
+import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
+import Samph.Pars (program, firstPass, instruction, labelDecl, addrReg, addrLit, reg, unBase, hex)
+import Samph.Types (AddrLit(..), AddrReg(..), Lit(..), MachineCode(..), Reg(..))
+import Data.String (toCharArray)
+import Data.Tuple (Tuple(..))
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Random (RANDOM)
+import Control.Monad.Eff.Exception (EXCEPTION)
+import Data.Int (toStringAs, hexadecimal)
+import Data.StrMap (fromFoldable)
+import Data.Either (Either(..))
 import Node.Encoding (Encoding(..))
 import Node.FS (FS)
-import Node.FS.Sync (readTextFile, mkdir)
-import Text.Parsing.Parser (runParser)
+import Node.FS.Sync (readTextFile)
+import Text.Parsing.Parser (runParser, Parser)
 
 newtype Positive = Positive Int
 
@@ -59,22 +58,39 @@ checkHexParse (Positive n) =
 checkUnBase :: Positive -> Result
 checkUnBase (Positive n) = n === (unBase 10 <<< slowToBase) n
 
+once :: forall a. Testable a => a -> Quick Unit
 once = quickCheck' 1
+
+type Quick a = forall e.
+  Eff ( err :: EXCEPTION
+      , console :: CONSOLE
+      , random :: RANDOM
+      | e ) a
+
+type QuickFS a = forall e.
+  Eff ( err :: EXCEPTION
+      , console :: CONSOLE
+      , random :: RANDOM
+      , fs :: FS
+      | e ) a
+
+parseExample :: forall a. (Eq a, Show a)
+             => Parser String a -> a -> String -> Quick Unit
 parseExample prs res str =
   once (Right res === runParser str prs)
 
+fromFile :: forall a. (Eq a, Show a)
+         => String -> Parser String a -> a
+         -> QuickFS Unit
 fromFile loc prs res = do
   file <- readTextFile UTF8 loc
   parseExample prs res file
 
-main :: forall m.
-        Eff ( console :: CONSOLE
-            , random  :: RANDOM
-            , err     :: EXCEPTION
-            , fs      :: FS       | m) Unit
+main :: QuickFS Unit
 main = do
   quickCheck checkUnBase
   quickCheck checkHexParse
+  once (Lit 255 + Lit 1 === Lit 0)
   parseExample reg AL "AL"
   parseExample reg BL "BL"
   parseExample reg CL "CL"
@@ -123,4 +139,4 @@ main = do
     , A4 BL
     , A5 CL
     , C2 (Lit 11)
-    , C0 (Lit 0)]
+    , C0 (Lit 0) ]

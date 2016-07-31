@@ -1,28 +1,22 @@
 module Samph.Pars where
 
-import Text.Parsing.Parser
-import Text.Parsing.Parser.Combinators
-import Text.Parsing.Parser.String
-import Data.Array
-import Data.Traversable
-import Prelude
-import Data.Maybe
-import Samph.Types
-import Data.StrMap.ST
-import Control.Monad.Eff
-import Control.Monad.Reader
-import Control.Monad.State
-import Control.Monad.Trans
-import Control.Monad.Eff.Console
-import Control.Alternative
-import Control.Monad.ST
-import Data.Either
-import Text.Parsing.Parser.Pos
+import Text.Parsing.Parser (ParserT(..), fail, unParserT)
+import Text.Parsing.Parser.Combinators (lookAhead, choice, skipMany, try, notFollowedBy, (<?>))
+import Text.Parsing.Parser.String (anyChar)
+import Data.Array (catMaybes, many, init, some)
+import Data.Traversable (class Foldable, foldl)
+import Prelude (class Monad, class Apply, Unit, bind, pure, map, flip, void, show, when, ($>), (<>), (<$>), (<*), (*>), (<*>), (+), ($), (>), (*))
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
+import Samph.Types (AddrLit(..), AddrReg(..), Lit(..), MachineCode(..), Reg(..))
+import Data.StrMap.ST (STStrMap, new, poke, peek)
+import Control.Monad.Eff (Eff, runPure)
+import Control.Monad.Reader (class MonadReader, runReader, ask)
+import Control.Monad.Trans (lift)
+import Control.Alternative ((<|>))
+import Control.Monad.ST (ST, STRef, newSTRef, modifySTRef, runST, readSTRef)
 import Data.Char.Unicode (digitToInt)
-import Text.Parsing.Parser.Language (emptyDef)
-import Data.StrMap hiding (pureST,runST)
-import Text.Parsing.Parser.Token hiding (when)
-import Data.Foldable hiding (oneOf)
+import Data.StrMap (StrMap, lookup, freezeST)
+import Text.Parsing.Parser.Token (GenTokenParser, GenLanguageDef(..), makeTokenParser, letter, alphaNum)
 
 unBase :: forall f. Foldable f => Int -> f Int -> Int
 unBase b = foldl f 0 where f n e = n * b + e
@@ -80,15 +74,32 @@ nops =
   , "CLO", "HALT", "NOP", "STI", "CLI"
   , "END" ]
 
+tokenParser :: forall m. Monad m => GenTokenParser String m
 tokenParser = makeTokenParser samph
-lex         = tokenParser.lexeme
-reserved    = tokenParser.reserved
-brackets    = tokenParser.brackets
-ident       = tokenParser.identifier
-colon       = tokenParser.colon
-comma       = tokenParser.comma
-op          = tokenParser.reservedOp
-wSpace      = tokenParser.whiteSpace
+
+lex :: forall m a. Monad m => ParserT String m a -> ParserT String m a
+lex = tokenParser.lexeme
+
+reserved :: forall m. Monad m => String -> ParserT String m Unit
+reserved = tokenParser.reserved
+
+brackets :: forall m a. Monad m => ParserT String m a -> ParserT String m a
+brackets = tokenParser.brackets
+
+ident :: forall m. Monad m => ParserT String m String
+ident = tokenParser.identifier
+
+colon :: forall m. Monad m => ParserT String m String
+colon = tokenParser.colon
+
+comma :: forall m. Monad m => ParserT String m String
+comma = tokenParser.comma
+
+op :: forall m. Monad m => String -> ParserT String m Unit
+op = tokenParser.reservedOp
+
+wSpace :: forall m. Monad m => ParserT String m Unit
+wSpace = tokenParser.whiteSpace
 
 lit :: forall m. Monad m => ParserT String m Lit
 lit = (do
@@ -141,7 +152,7 @@ instruction = binop <|> unop <|> nop where
                , map show reg
                , map show lit ]
 
-unMon :: forall n m a. Monad m => (forall a. n a -> m a) -> ParserT String n a -> ParserT String m a
+unMon :: forall n m a. Monad m => (forall b. n b -> m b) -> ParserT String n a -> ParserT String m a
 unMon f (ParserT p) = ParserT $ \s -> f (p s)
 
 firstPass :: forall m. Monad m => ParserT String m (StrMap Int)
@@ -212,7 +223,7 @@ cmp = op "CMP" *> do
   r <- reg <* comma
   DA r <$> reg <|> DB r <$> lit <|> DC r <$> addrLit
 
-jmp :: forall m r. (Monad m, MonadReader (StrMap Int) m)
+jmp :: forall m. (Monad m, MonadReader (StrMap Int) m)
     => ParserT String m MachineCode
 jmp = do
   c <- choice [ op "JMP" $> C0
@@ -228,10 +239,7 @@ jmp = do
     Nothing -> fail ("Unrecognised label: " <> name)
     Just n -> pure (c (Lit n))
 
-data ParserState = ParserState
-  { labels :: StrMap Int }
-
-instructions' :: forall m r. (Monad m, MonadReader (StrMap Int) m)
+instructions' :: forall m. (Monad m, MonadReader (StrMap Int) m)
              => ParserT String m (Maybe MachineCode)
 instructions' = map Just (choice [mov, cmp, jmp, unArith, binArith]) <|> labelDecl $> Nothing
 
