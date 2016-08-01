@@ -92,8 +92,8 @@ var Finished = (function () {
 var uses = function (dictMonadState) {
     return function (l) {
         return function (f) {
-            return Control_Monad_State_Class.gets(dictMonadState)(function ($280) {
-                return f(Optic_Getter.view(l(Data_Const.functorConst))($280));
+            return Control_Monad_State_Class.gets(dictMonadState)(function ($284) {
+                return f(Optic_Getter.view(l(Data_Const.functorConst))($284));
             });
         };
     };
@@ -108,14 +108,14 @@ var sr = function (dictFunctor) {
         return s1.sr;
     })(function (s1) {
         return function (x) {
-            var $128 = {};
-            for (var $129 in s1) {
-                if (s1.hasOwnProperty($129)) {
-                    $128[$129] = s1[$129];
+            var $131 = {};
+            for (var $132 in s1) {
+                if (s1.hasOwnProperty($132)) {
+                    $131[$132] = s1[$132];
                 };
             };
-            $128.sr = x;
-            return $128;
+            $131.sr = x;
+            return $131;
         };
     })(dictFunctor);
 };
@@ -124,14 +124,14 @@ var sp = function (dictFunctor) {
         return s1.sp;
     })(function (s1) {
         return function (x) {
-            var $130 = {};
-            for (var $131 in s1) {
-                if (s1.hasOwnProperty($131)) {
-                    $130[$131] = s1[$131];
+            var $133 = {};
+            for (var $134 in s1) {
+                if (s1.hasOwnProperty($134)) {
+                    $133[$134] = s1[$134];
                 };
             };
-            $130.sp = x;
-            return $130;
+            $133.sp = x;
+            return $133;
         };
     })(dictFunctor);
 };
@@ -142,14 +142,14 @@ var regLens = function (v) {
                 return s1.al;
             })(function (s1) {
                 return function (x) {
-                    var $133 = {};
-                    for (var $134 in s1) {
-                        if (s1.hasOwnProperty($134)) {
-                            $133[$134] = s1[$134];
+                    var $136 = {};
+                    for (var $137 in s1) {
+                        if (s1.hasOwnProperty($137)) {
+                            $136[$137] = s1[$137];
                         };
                     };
-                    $133.al = x;
-                    return $133;
+                    $136.al = x;
+                    return $136;
                 };
             })(dictFunctor);
         };
@@ -158,14 +158,14 @@ var regLens = function (v) {
                 return s1.bl;
             })(function (s1) {
                 return function (x) {
-                    var $135 = {};
-                    for (var $136 in s1) {
-                        if (s1.hasOwnProperty($136)) {
-                            $135[$136] = s1[$136];
+                    var $138 = {};
+                    for (var $139 in s1) {
+                        if (s1.hasOwnProperty($139)) {
+                            $138[$139] = s1[$139];
                         };
                     };
-                    $135.bl = x;
-                    return $135;
+                    $138.bl = x;
+                    return $138;
                 };
             })(dictFunctor);
         };
@@ -174,14 +174,14 @@ var regLens = function (v) {
                 return s1.cl;
             })(function (s1) {
                 return function (x) {
-                    var $137 = {};
-                    for (var $138 in s1) {
-                        if (s1.hasOwnProperty($138)) {
-                            $137[$138] = s1[$138];
+                    var $140 = {};
+                    for (var $141 in s1) {
+                        if (s1.hasOwnProperty($141)) {
+                            $140[$141] = s1[$141];
                         };
                     };
-                    $137.cl = x;
-                    return $137;
+                    $140.cl = x;
+                    return $140;
                 };
             })(dictFunctor);
         };
@@ -190,14 +190,14 @@ var regLens = function (v) {
                 return s1.dl;
             })(function (s1) {
                 return function (x) {
-                    var $139 = {};
-                    for (var $140 in s1) {
-                        if (s1.hasOwnProperty($140)) {
-                            $139[$140] = s1[$140];
+                    var $142 = {};
+                    for (var $143 in s1) {
+                        if (s1.hasOwnProperty($143)) {
+                            $142[$143] = s1[$143];
                         };
                     };
-                    $139.dl = x;
-                    return $139;
+                    $142.dl = x;
+                    return $142;
                 };
             })(dictFunctor);
         };
@@ -209,14 +209,14 @@ var ram = function (dictFunctor) {
         return s1.ram;
     })(function (s1) {
         return function (x) {
-            var $141 = {};
-            for (var $142 in s1) {
-                if (s1.hasOwnProperty($142)) {
-                    $141[$142] = s1[$142];
+            var $144 = {};
+            for (var $145 in s1) {
+                if (s1.hasOwnProperty($145)) {
+                    $144[$145] = s1[$145];
                 };
             };
-            $141.ram = x;
-            return $141;
+            $144.ram = x;
+            return $144;
         };
     })(dictFunctor);
 };
@@ -261,14 +261,14 @@ var ip = function (dictFunctor) {
         return s1.ip;
     })(function (s1) {
         return function (x) {
-            var $149 = {};
-            for (var $150 in s1) {
-                if (s1.hasOwnProperty($150)) {
-                    $149[$150] = s1[$150];
+            var $152 = {};
+            for (var $153 in s1) {
+                if (s1.hasOwnProperty($153)) {
+                    $152[$153] = s1[$153];
                 };
             };
-            $149.ip = x;
-            return $149;
+            $152.ip = x;
+            return $152;
         };
     })(dictFunctor);
 };
@@ -285,25 +285,25 @@ var popLit = function (dictMonadState) {
             return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
                 return ram(dictFunctor);
             }))(function (v1) {
-                var $153 = Data_Array.index(v1)(v);
-                if ($153 instanceof Data_Maybe.Nothing) {
+                var $156 = Data_Array.index(v1)(v);
+                if ($156 instanceof Data_Maybe.Nothing) {
                     return Control_Monad_Error_Class.throwError(dictMonadError)(new OverflowedInstruction(v));
                 };
-                if ($153 instanceof Data_Maybe.Just) {
+                if ($156 instanceof Data_Maybe.Just) {
                     return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Monad_State_Class.modify(dictMonadState)(function (s1) {
-                        var $154 = {};
-                        for (var $155 in s1) {
-                            if (s1.hasOwnProperty($155)) {
-                                $154[$155] = s1[$155];
+                        var $157 = {};
+                        for (var $158 in s1) {
+                            if (s1.hasOwnProperty($158)) {
+                                $157[$158] = s1[$158];
                             };
                         };
-                        $154.ip = Data_Semiring.add(Samph_Types.semiRingLit)(v)(1);
-                        return $154;
+                        $157.ip = Data_Semiring.add(Samph_Types.semiRingLit)(v)(1);
+                        return $157;
                     }))(function () {
-                        return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())($153.value0);
+                        return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())($156.value0);
                     });
                 };
-                throw new Error("Failed pattern match at Samph.Runtime line 82, column 3 - line 86, column 13: " + [ $153.constructor.name ]);
+                throw new Error("Failed pattern match at Samph.Runtime line 82, column 3 - line 86, column 13: " + [ $156.constructor.name ]);
             });
         });
     };
@@ -501,14 +501,14 @@ var io = function (dictFunctor) {
         return s1.io;
     })(function (s1) {
         return function (x) {
-            var $162 = {};
-            for (var $163 in s1) {
-                if (s1.hasOwnProperty($163)) {
-                    $162[$163] = s1[$163];
+            var $165 = {};
+            for (var $166 in s1) {
+                if (s1.hasOwnProperty($166)) {
+                    $165[$166] = s1[$166];
                 };
             };
-            $162.io = x;
-            return $162;
+            $165.io = x;
+            return $165;
         };
     })(dictFunctor);
 };
@@ -530,6 +530,17 @@ var setIO = function (v) {
             };
         };
     };
+};
+var initialState = {
+    ram: [  ], 
+    al: 0, 
+    bl: 0, 
+    cl: 0, 
+    dl: 0, 
+    ip: 0, 
+    sr: 0, 
+    sp: 191, 
+    io: [  ]
 };
 var getRam = function (v) {
     return function (dictMonadState) {
@@ -574,24 +585,24 @@ var set = function (n) {
     return function (s1) {
         return function (v) {
             if (v) {
-                var $179 = {};
-                for (var $180 in s1) {
-                    if (s1.hasOwnProperty($180)) {
-                        $179[$180] = s1[$180];
+                var $182 = {};
+                for (var $183 in s1) {
+                    if (s1.hasOwnProperty($183)) {
+                        $182[$183] = s1[$183];
                     };
                 };
-                $179.sr = Data_Int_Bits.or(getLit(s1.sr))(n);
-                return $179;
+                $182.sr = Data_Int_Bits.or(getLit(s1.sr))(n);
+                return $182;
             };
             if (!v) {
-                var $181 = {};
-                for (var $182 in s1) {
-                    if (s1.hasOwnProperty($182)) {
-                        $181[$182] = s1[$182];
+                var $184 = {};
+                for (var $185 in s1) {
+                    if (s1.hasOwnProperty($185)) {
+                        $184[$185] = s1[$185];
                     };
                 };
-                $181.sr = Data_Int_Bits.and(getLit(s1.sr))(~n);
-                return $181;
+                $184.sr = Data_Int_Bits.and(getLit(s1.sr))(~n);
+                return $184;
             };
             throw new Error("Failed pattern match at Samph.Runtime line 55, column 1 - line 55, column 51: " + [ n.constructor.name, s1.constructor.name, v.constructor.name ]);
         };
@@ -664,8 +675,8 @@ var binArith = function (dictMonadState) {
             return function (ylens) {
                 return Control_Bind.bindFlipped((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(arith(dictMonadState)(xreg))(uses(dictMonadState)(function (dictFunctor) {
                     return ylens(dictFunctor);
-                })(function ($281) {
-                    return op(getLit($281));
+                })(function ($285) {
+                    return op(getLit($285));
                 }));
             };
         };
@@ -979,6 +990,13 @@ var runInst = function (ins) {
         };
     };
 };
+var step = function (dictMonadState) {
+    return function (dictMonadError) {
+        return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(popIns(dictMonadState)(dictMonadError))(function (v) {
+            return runInst(v)(dictMonadState)(dictMonadError);
+        });
+    };
+};
 module.exports = {
     OverflowedInstruction: OverflowedInstruction, 
     CorruptedCode: CorruptedCode, 
@@ -993,6 +1011,7 @@ module.exports = {
     getLit: getLit, 
     getRam: getRam, 
     i: i, 
+    initialState: initialState, 
     io: io, 
     ip: ip, 
     jmp: jmp, 
@@ -1011,6 +1030,7 @@ module.exports = {
     setRam: setRam, 
     sp: sp, 
     sr: sr, 
+    step: step, 
     use: use, 
     uses: uses, 
     z: z

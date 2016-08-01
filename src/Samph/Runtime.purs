@@ -331,3 +331,20 @@ runInst ins = case ins of
     c LT = modify (s .~ true)
     c EQ = modify (z .~ true)
     c GT = pure unit
+
+initialState :: SamphireState
+initialState =
+  { ram: []
+  , al: Lit 0
+  , bl: Lit 0
+  , cl: Lit 0
+  , dl: Lit 0
+  , ip: Lit 0
+  , sr: Lit 0
+  , sp: Lit 191
+  , io: [] }
+
+step :: ErrorState Unit
+step = do
+  i <- popIns
+  runInst i
