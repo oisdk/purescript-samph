@@ -2,35 +2,33 @@
 "use strict";
 var Control_Monad_State = require("../Control.Monad.State");
 var Control_Monad_Error_Class = require("../Control.Monad.Error.Class");
+var Optic_Lens = require("../Optic.Lens");
+var Optic_Getter = require("../Optic.Getter");
+var Optic_Setter = require("../Optic.Setter");
 var Data_Array = require("../Data.Array");
 var Data_Maybe = require("../Data.Maybe");
 var Samph_Types = require("../Samph.Types");
 var Prelude = require("../Prelude");
 var Data_Int_Bits = require("../Data.Int.Bits");
-var Data_Ring = require("../Data.Ring");
-var Data_Ord = require("../Data.Ord");
-var Data_Ordering = require("../Data.Ordering");
-var Control_Bind = require("../Control.Bind");
 var Control_Monad_State_Class = require("../Control.Monad.State.Class");
+var Control_Semigroupoid = require("../Control.Semigroupoid");
+var Data_Const = require("../Data.Const");
+var Control_Bind = require("../Control.Bind");
+var Data_Identity = require("../Data.Identity");
 var Control_Applicative = require("../Control.Applicative");
+var Data_Eq = require("../Data.Eq");
+var Data_Profunctor = require("../Data.Profunctor");
+var Data_Ring = require("../Data.Ring");
 var Data_Semiring = require("../Data.Semiring");
 var Data_Show = require("../Data.Show");
 var Data_Functor = require("../Data.Functor");
 var Control_Apply = require("../Control.Apply");
-var Zero = (function () {
-    function Zero() {
-
-    };
-    Zero.value = new Zero();
-    return Zero;
-})();
-var NonZero = (function () {
-    function NonZero() {
-
-    };
-    NonZero.value = new NonZero();
-    return NonZero;
-})();
+var Data_Ord = require("../Data.Ord");
+var Data_Ordering = require("../Data.Ordering");
+var Data_Unit = require("../Data.Unit");
+var Data_EuclideanRing = require("../Data.EuclideanRing");
+var Data_Function = require("../Data.Function");
+var Data_HeytingAlgebra = require("../Data.HeytingAlgebra");
 var OverflowedInstruction = (function () {
     function OverflowedInstruction(value0) {
         this.value0 = value0;
@@ -52,177 +50,260 @@ var CorruptedCode = (function () {
     };
     return CorruptedCode;
 })();
-var Underflow = (function () {
-    function Underflow() {
+var StackOverflow = (function () {
+    function StackOverflow() {
 
     };
-    Underflow.value = new Underflow();
-    return Underflow;
+    StackOverflow.value = new StackOverflow();
+    return StackOverflow;
 })();
-var Overflow = (function () {
-    function Overflow() {
+var StackUnderflow = (function () {
+    function StackUnderflow() {
 
     };
-    Overflow.value = new Overflow();
-    return Overflow;
+    StackUnderflow.value = new StackUnderflow();
+    return StackUnderflow;
 })();
-var Inbounds = (function () {
-    function Inbounds() {
+var IndexOutOfBounds = (function () {
+    function IndexOutOfBounds(value0) {
+        this.value0 = value0;
+    };
+    IndexOutOfBounds.create = function (value0) {
+        return new IndexOutOfBounds(value0);
+    };
+    return IndexOutOfBounds;
+})();
+var InvalidPort = (function () {
+    function InvalidPort(value0) {
+        this.value0 = value0;
+    };
+    InvalidPort.create = function (value0) {
+        return new InvalidPort(value0);
+    };
+    return InvalidPort;
+})();
+var Finished = (function () {
+    function Finished() {
 
     };
-    Inbounds.value = new Inbounds();
-    return Inbounds;
+    Finished.value = new Finished();
+    return Finished;
 })();
-var unSetZero = function (v) {
-    return Data_Int_Bits.and(v)(~64);
-};
-var subCheck = function (v) {
-    return function (v1) {
-        if (v === 0 && v1 === 0) {
-            return {
-                value: 0, 
-                bounds: Inbounds.value, 
-                zero: Zero.value
-            };
-        };
-        var z = v - v1;
-        var $28 = Data_Ord.compare(Data_Ord.ordInt)(-1)(z);
-        if ($28 instanceof Data_Ordering.LT) {
-            return {
-                value: z, 
-                bounds: Inbounds.value, 
-                zero: NonZero.value
-            };
-        };
-        if ($28 instanceof Data_Ordering.GT) {
-            return {
-                value: Data_Int_Bits.and(z)(255), 
-                bounds: Underflow.value, 
-                zero: NonZero.value
-            };
-        };
-        if ($28 instanceof Data_Ordering.EQ) {
-            return {
-                value: 255, 
-                bounds: Underflow.value, 
-                zero: NonZero.value
-            };
-        };
-        throw new Error("Failed pattern match at Samph.Runtime line 146, column 28 - line 149, column 59: " + [ $28.constructor.name ]);
-    };
-};
-var setZero = function (v) {
-    return Data_Int_Bits.or(v)(64);
-};
-var setUnderflow = function (v) {
-    return Data_Int_Bits.and(Data_Int_Bits.or(v)(16))(~32);
-};
-var setOverflow = function (v) {
-    return Data_Int_Bits.and(Data_Int_Bits.or(v)(32))(~16);
-};
-var setInBounds = function (v) {
-    return Data_Int_Bits.and(Data_Int_Bits.and(v)(~16))(~32);
-};
-var setFlags = function (dictMonadState) {
-    return function (r) {
-        return Control_Bind.bind((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())((function () {
-            if (r.bounds instanceof Underflow) {
-                return Control_Monad_State_Class.modify(dictMonadState)(function (s) {
-                    var $34 = {};
-                    for (var $35 in s) {
-                        if (s.hasOwnProperty($35)) {
-                            $34[$35] = s[$35];
-                        };
-                    };
-                    $34.sr = setUnderflow(s.sr);
-                    return $34;
-                });
-            };
-            if (r.bounds instanceof Overflow) {
-                return Control_Monad_State_Class.modify(dictMonadState)(function (s) {
-                    var $36 = {};
-                    for (var $37 in s) {
-                        if (s.hasOwnProperty($37)) {
-                            $36[$37] = s[$37];
-                        };
-                    };
-                    $36.sr = setOverflow(s.sr);
-                    return $36;
-                });
-            };
-            if (r.bounds instanceof Inbounds) {
-                return Control_Monad_State_Class.modify(dictMonadState)(function (s) {
-                    var $38 = {};
-                    for (var $39 in s) {
-                        if (s.hasOwnProperty($39)) {
-                            $38[$39] = s[$39];
-                        };
-                    };
-                    $38.sr = setInBounds(s.sr);
-                    return $38;
-                });
-            };
-            throw new Error("Failed pattern match at Samph.Runtime line 169, column 3 - line 175, column 49: " + [ r.bounds.constructor.name ]);
-        })())(function () {
-            return Control_Bind.bind((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())((function () {
-                if (r.zero instanceof Zero) {
-                    return Control_Monad_State_Class.modify(dictMonadState)(function (s) {
-                        var $41 = {};
-                        for (var $42 in s) {
-                            if (s.hasOwnProperty($42)) {
-                                $41[$42] = s[$42];
-                            };
-                        };
-                        $41.sr = setZero(s.sr);
-                        return $41;
-                    });
-                };
-                if (r.zero instanceof NonZero) {
-                    return Control_Monad_State_Class.modify(dictMonadState)(function (s) {
-                        var $43 = {};
-                        for (var $44 in s) {
-                            if (s.hasOwnProperty($44)) {
-                                $43[$44] = s[$44];
-                            };
-                        };
-                        $43.sr = unSetZero(s.sr);
-                        return $43;
-                    });
-                };
-                throw new Error("Failed pattern match at Samph.Runtime line 176, column 3 - line 180, column 47: " + [ r.zero.constructor.name ]);
-            })())(function () {
-                return Control_Applicative.pure((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(r.value);
+var uses = function (dictMonadState) {
+    return function (l) {
+        return function (f) {
+            return Control_Monad_State_Class.gets(dictMonadState)(function ($280) {
+                return f(Optic_Getter.view(l(Data_Const.functorConst))($280));
             });
-        });
+        };
+    };
+};
+var use = function (dictMonadState) {
+    return function (l) {
+        return Control_Monad_State_Class.gets(dictMonadState)(Optic_Getter.view(l(Data_Const.functorConst)));
+    };
+};
+var sr = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return s1.sr;
+    })(function (s1) {
+        return function (x) {
+            var $128 = {};
+            for (var $129 in s1) {
+                if (s1.hasOwnProperty($129)) {
+                    $128[$129] = s1[$129];
+                };
+            };
+            $128.sr = x;
+            return $128;
+        };
+    })(dictFunctor);
+};
+var sp = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return s1.sp;
+    })(function (s1) {
+        return function (x) {
+            var $130 = {};
+            for (var $131 in s1) {
+                if (s1.hasOwnProperty($131)) {
+                    $130[$131] = s1[$131];
+                };
+            };
+            $130.sp = x;
+            return $130;
+        };
+    })(dictFunctor);
+};
+var regLens = function (v) {
+    return function (dictFunctor) {
+        if (v instanceof Samph_Types.AL) {
+            return Optic_Lens.lens(function (s1) {
+                return s1.al;
+            })(function (s1) {
+                return function (x) {
+                    var $133 = {};
+                    for (var $134 in s1) {
+                        if (s1.hasOwnProperty($134)) {
+                            $133[$134] = s1[$134];
+                        };
+                    };
+                    $133.al = x;
+                    return $133;
+                };
+            })(dictFunctor);
+        };
+        if (v instanceof Samph_Types.BL) {
+            return Optic_Lens.lens(function (s1) {
+                return s1.bl;
+            })(function (s1) {
+                return function (x) {
+                    var $135 = {};
+                    for (var $136 in s1) {
+                        if (s1.hasOwnProperty($136)) {
+                            $135[$136] = s1[$136];
+                        };
+                    };
+                    $135.bl = x;
+                    return $135;
+                };
+            })(dictFunctor);
+        };
+        if (v instanceof Samph_Types.CL) {
+            return Optic_Lens.lens(function (s1) {
+                return s1.cl;
+            })(function (s1) {
+                return function (x) {
+                    var $137 = {};
+                    for (var $138 in s1) {
+                        if (s1.hasOwnProperty($138)) {
+                            $137[$138] = s1[$138];
+                        };
+                    };
+                    $137.cl = x;
+                    return $137;
+                };
+            })(dictFunctor);
+        };
+        if (v instanceof Samph_Types.DL) {
+            return Optic_Lens.lens(function (s1) {
+                return s1.dl;
+            })(function (s1) {
+                return function (x) {
+                    var $139 = {};
+                    for (var $140 in s1) {
+                        if (s1.hasOwnProperty($140)) {
+                            $139[$140] = s1[$140];
+                        };
+                    };
+                    $139.dl = x;
+                    return $139;
+                };
+            })(dictFunctor);
+        };
+        throw new Error("Failed pattern match at Samph.Runtime line 159, column 1 - line 159, column 56: " + [ v.constructor.name ]);
+    };
+};
+var ram = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return s1.ram;
+    })(function (s1) {
+        return function (x) {
+            var $141 = {};
+            for (var $142 in s1) {
+                if (s1.hasOwnProperty($142)) {
+                    $141[$142] = s1[$142];
+                };
+            };
+            $141.ram = x;
+            return $141;
+        };
+    })(dictFunctor);
+};
+var setRam = function (v) {
+    return function (x) {
+        return function (dictMonadState) {
+            return function (dictMonadError) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(uses(dictMonadState)(function (dictFunctor) {
+                    return ram(dictFunctor);
+                })(Data_Array.updateAt(v)(x)))(function (v1) {
+                    if (v1 instanceof Data_Maybe.Nothing) {
+                        return Control_Monad_Error_Class.throwError(dictMonadError)(new IndexOutOfBounds(v));
+                    };
+                    if (v1 instanceof Data_Maybe.Just) {
+                        return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(ram(Data_Identity.functorIdentity))(v1.value0));
+                    };
+                    throw new Error("Failed pattern match at Samph.Runtime line 216, column 3 - line 218, column 32: " + [ v1.constructor.name ]);
+                });
+            };
+        };
+    };
+};
+var push = function (x) {
+    return function (dictMonadState) {
+        return function (dictMonadError) {
+            return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                return sp(dictFunctor);
+            }))(function (v) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Applicative.when((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(Data_Eq.eq(Samph_Types.eqLit)(v)(255))(Control_Monad_Error_Class.throwError(dictMonadError)(StackOverflow.value)))(function () {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(setRam(v)(x)(dictMonadState)(dictMonadError))(function () {
+                        return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.over(Data_Profunctor.profunctorFn)(sp(Data_Identity.functorIdentity))(function (v1) {
+                            return Data_Ring.sub(Samph_Types.ringLit)(v1)(1);
+                        }));
+                    });
+                });
+            });
+        };
+    };
+};
+var ip = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return s1.ip;
+    })(function (s1) {
+        return function (x) {
+            var $149 = {};
+            for (var $150 in s1) {
+                if (s1.hasOwnProperty($150)) {
+                    $149[$150] = s1[$150];
+                };
+            };
+            $149.ip = x;
+            return $149;
+        };
+    })(dictFunctor);
+};
+var jmp = function (dictMonadState) {
+    return function (i1) {
+        return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(ip(Data_Identity.functorIdentity))(i1));
     };
 };
 var popLit = function (dictMonadState) {
     return function (dictMonadError) {
-        return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Monad_State_Class.gets(dictMonadState)(function (v) {
-            return v.ip;
+        return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+            return ip(dictFunctor);
         }))(function (v) {
-            return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Monad_State_Class.gets(dictMonadState)(function (v1) {
-                return v1.ram;
+            return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                return ram(dictFunctor);
             }))(function (v1) {
-                var $47 = Data_Array.index(v1)(v);
-                if ($47 instanceof Data_Maybe.Nothing) {
+                var $153 = Data_Array.index(v1)(v);
+                if ($153 instanceof Data_Maybe.Nothing) {
                     return Control_Monad_Error_Class.throwError(dictMonadError)(new OverflowedInstruction(v));
                 };
-                if ($47 instanceof Data_Maybe.Just) {
-                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Monad_State_Class.modify(dictMonadState)(function (s) {
-                        var $48 = {};
-                        for (var $49 in s) {
-                            if (s.hasOwnProperty($49)) {
-                                $48[$49] = s[$49];
+                if ($153 instanceof Data_Maybe.Just) {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Monad_State_Class.modify(dictMonadState)(function (s1) {
+                        var $154 = {};
+                        for (var $155 in s1) {
+                            if (s1.hasOwnProperty($155)) {
+                                $154[$155] = s1[$155];
                             };
                         };
-                        $48.ip = Data_Semiring.add(Samph_Types.semiRingLit)(v)(1);
-                        return $48;
+                        $154.ip = Data_Semiring.add(Samph_Types.semiRingLit)(v)(1);
+                        return $154;
                     }))(function () {
-                        return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())($47.value0);
+                        return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())($153.value0);
                     });
                 };
-                throw new Error("Failed pattern match at Samph.Runtime line 32, column 3 - line 36, column 13: " + [ $47.constructor.name ]);
+                throw new Error("Failed pattern match at Samph.Runtime line 82, column 3 - line 86, column 13: " + [ $153.constructor.name ]);
             });
         });
     };
@@ -415,94 +496,522 @@ var popIns = function (dictMonadState) {
         });
     };
 };
-var mulCheck = function (v) {
-    return function (v1) {
-        if (v === 0 && v1 === 0) {
-            return {
-                value: 0, 
-                bounds: Inbounds.value, 
-                zero: Zero.value
+var io = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return s1.io;
+    })(function (s1) {
+        return function (x) {
+            var $162 = {};
+            for (var $163 in s1) {
+                if (s1.hasOwnProperty($163)) {
+                    $162[$163] = s1[$163];
+                };
+            };
+            $162.io = x;
+            return $162;
+        };
+    })(dictFunctor);
+};
+var setIO = function (v) {
+    return function (x) {
+        return function (dictMonadState) {
+            return function (dictMonadError) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(uses(dictMonadState)(function (dictFunctor) {
+                    return io(dictFunctor);
+                })(Data_Array.updateAt(v)(x)))(function (v1) {
+                    if (v1 instanceof Data_Maybe.Nothing) {
+                        return Control_Monad_Error_Class.throwError(dictMonadError)(new InvalidPort(v));
+                    };
+                    if (v1 instanceof Data_Maybe.Just) {
+                        return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(io(Data_Identity.functorIdentity))(v1.value0));
+                    };
+                    throw new Error("Failed pattern match at Samph.Runtime line 230, column 3 - line 232, column 31: " + [ v1.constructor.name ]);
+                });
             };
         };
-        var z = v * v1 | 0;
-        var $58 = Data_Ord.compare(Data_Ord.ordInt)(z)(256);
-        if ($58 instanceof Data_Ordering.LT) {
-            return {
-                value: z, 
-                bounds: Inbounds.value, 
-                zero: NonZero.value
-            };
-        };
-        if ($58 instanceof Data_Ordering.GT) {
-            return {
-                value: Data_Int_Bits.and(z)(255), 
-                bounds: Overflow.value, 
-                zero: NonZero.value
-            };
-        };
-        if ($58 instanceof Data_Ordering.EQ) {
-            return {
-                value: 0, 
-                bounds: Overflow.value, 
-                zero: Zero.value
-            };
-        };
-        throw new Error("Failed pattern match at Samph.Runtime line 135, column 28 - line 138, column 53: " + [ $58.constructor.name ]);
     };
 };
-var addCheck = function (v) {
-    return function (v1) {
-        if (v === 0 && v1 === 0) {
-            return {
-                value: 0, 
-                bounds: Inbounds.value, 
-                zero: Zero.value
+var getRam = function (v) {
+    return function (dictMonadState) {
+        return function (dictMonadError) {
+            return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(uses(dictMonadState)(function (dictFunctor) {
+                return ram(dictFunctor);
+            })(function (v1) {
+                return Data_Array.index(v1)(v);
+            }))(function (v1) {
+                if (v1 instanceof Data_Maybe.Nothing) {
+                    return Control_Monad_Error_Class.throwError(dictMonadError)(new IndexOutOfBounds(v));
+                };
+                if (v1 instanceof Data_Maybe.Just) {
+                    return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(v1.value0);
+                };
+                throw new Error("Failed pattern match at Samph.Runtime line 209, column 3 - line 211, column 21: " + [ v1.constructor.name ]);
+            });
+        };
+    };
+};
+var pop = function (dictMonadState) {
+    return function (dictMonadError) {
+        return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+            return sp(dictFunctor);
+        }))(function (v) {
+            return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Applicative.when((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(Data_Eq.eq(Samph_Types.eqLit)(v)(191))(Control_Monad_Error_Class.throwError(dictMonadError)(StackUnderflow.value)))(function () {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(getRam(v)(dictMonadState)(dictMonadError))(function (v1) {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.over(Data_Profunctor.profunctorFn)(sp(Data_Identity.functorIdentity))(function (v2) {
+                        return Data_Semiring.add(Samph_Types.semiRingLit)(v2)(1);
+                    })))(function () {
+                        return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(v1);
+                    });
+                });
+            });
+        });
+    };
+};
+var getLit = function (v) {
+    return v;
+};
+var set = function (n) {
+    return function (s1) {
+        return function (v) {
+            if (v) {
+                var $179 = {};
+                for (var $180 in s1) {
+                    if (s1.hasOwnProperty($180)) {
+                        $179[$180] = s1[$180];
+                    };
+                };
+                $179.sr = Data_Int_Bits.or(getLit(s1.sr))(n);
+                return $179;
+            };
+            if (!v) {
+                var $181 = {};
+                for (var $182 in s1) {
+                    if (s1.hasOwnProperty($182)) {
+                        $181[$182] = s1[$182];
+                    };
+                };
+                $181.sr = Data_Int_Bits.and(getLit(s1.sr))(~n);
+                return $181;
+            };
+            throw new Error("Failed pattern match at Samph.Runtime line 55, column 1 - line 55, column 51: " + [ n.constructor.name, s1.constructor.name, v.constructor.name ]);
+        };
+    };
+};
+var i = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return Data_Int_Bits.and(getLit(s1.sr))(8) > 0;
+    })(set(8))(dictFunctor);
+};
+var o = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return Data_Int_Bits.and(getLit(s1.sr))(32) > 0;
+    })(set(32))(dictFunctor);
+};
+var s = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return Data_Int_Bits.and(getLit(s1.sr))(16) > 0;
+    })(set(16))(dictFunctor);
+};
+var z = function (dictFunctor) {
+    return Optic_Lens.lens(function (s1) {
+        return Data_Int_Bits.and(getLit(s1.sr))(64) > 0;
+    })(set(64))(dictFunctor);
+};
+var getIO = function (v) {
+    return function (dictMonadState) {
+        return function (dictMonadError) {
+            return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(uses(dictMonadState)(function (dictFunctor) {
+                return io(dictFunctor);
+            })(function (v1) {
+                return Data_Array.index(v1)(v);
+            }))(function (v1) {
+                if (v1 instanceof Data_Maybe.Nothing) {
+                    return Control_Monad_Error_Class.throwError(dictMonadError)(new InvalidPort(v));
+                };
+                if (v1 instanceof Data_Maybe.Just) {
+                    return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(v1.value0);
+                };
+                throw new Error("Failed pattern match at Samph.Runtime line 223, column 3 - line 225, column 21: " + [ v1.constructor.name ]);
+            });
+        };
+    };
+};
+var arith = function (dictMonadState) {
+    return function (xreg) {
+        return function (op) {
+            var x = regLens(xreg);
+            return Control_Bind.bind((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                return x(dictFunctor);
+            }))(function (v) {
+                var res = op(v);
+                return Control_Bind.bind((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(sr(Data_Identity.functorIdentity))(0)))(function () {
+                    return Control_Bind.bind((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Applicative.when((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(res < 0)(Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(s(Data_Identity.functorIdentity))(true))))(function () {
+                        return Control_Bind.bind((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Applicative.when((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(res > 255)(Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(o(Data_Identity.functorIdentity))(true))))(function () {
+                            var wrp = Data_Int_Bits.and(res)(255);
+                            return Control_Bind.bind((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(Control_Applicative.when((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(wrp === 0)(Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(z(Data_Identity.functorIdentity))(true))))(function () {
+                                return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(x(Data_Identity.functorIdentity))(wrp));
+                            });
+                        });
+                    });
+                });
+            });
+        };
+    };
+};
+var binArith = function (dictMonadState) {
+    return function (op) {
+        return function (xreg) {
+            return function (ylens) {
+                return Control_Bind.bindFlipped((dictMonadState["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(arith(dictMonadState)(xreg))(uses(dictMonadState)(function (dictFunctor) {
+                    return ylens(dictFunctor);
+                })(function ($281) {
+                    return op(getLit($281));
+                }));
             };
         };
-        var z = v + v1 | 0;
-        var $61 = Data_Ord.compare(Data_Ord.ordInt)(z)(256);
-        if ($61 instanceof Data_Ordering.LT) {
-            return {
-                value: z, 
-                bounds: Inbounds.value, 
-                zero: NonZero.value
+    };
+};
+var runInst = function (ins) {
+    return function (dictMonadState) {
+        return function (dictMonadError) {
+            var c = function (v) {
+                if (v instanceof Data_Ordering.LT) {
+                    return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(s(Data_Identity.functorIdentity))(true));
+                };
+                if (v instanceof Data_Ordering.EQ) {
+                    return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(z(Data_Identity.functorIdentity))(true));
+                };
+                if (v instanceof Data_Ordering.GT) {
+                    return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(Data_Unit.unit);
+                };
+                throw new Error("Failed pattern match at Samph.Runtime line 331, column 5 - line 331, column 30: " + [ v.constructor.name ]);
             };
-        };
-        if ($61 instanceof Data_Ordering.GT) {
-            return {
-                value: Data_Int_Bits.and(z)(255), 
-                bounds: Overflow.value, 
-                zero: NonZero.value
+            if (ins instanceof Samph_Types.A0) {
+                return binArith(dictMonadState)(Data_Semiring.add(Data_Semiring.semiringInt))(ins.value0)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                });
             };
-        };
-        if ($61 instanceof Data_Ordering.EQ) {
-            return {
-                value: 0, 
-                bounds: Overflow.value, 
-                zero: Zero.value
+            if (ins instanceof Samph_Types.A1) {
+                return binArith(dictMonadState)(Data_Ring.sub(Data_Ring.ringInt))(ins.value0)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                });
             };
+            if (ins instanceof Samph_Types.A2) {
+                return binArith(dictMonadState)(Data_Semiring.mul(Data_Semiring.semiringInt))(ins.value0)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                });
+            };
+            if (ins instanceof Samph_Types.A3) {
+                return binArith(dictMonadState)(Data_EuclideanRing.div(Data_EuclideanRing.euclideanRingInt))(ins.value0)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                });
+            };
+            if (ins instanceof Samph_Types.A4) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return v + 1 | 0;
+                });
+            };
+            if (ins instanceof Samph_Types.A5) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return v - 1;
+                });
+            };
+            if (ins instanceof Samph_Types.A6) {
+                return binArith(dictMonadState)(Data_EuclideanRing.mod(Data_EuclideanRing.euclideanRingInt))(ins.value0)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                });
+            };
+            if (ins instanceof Samph_Types.AA) {
+                return binArith(dictMonadState)(Data_Int_Bits.and)(ins.value0)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                });
+            };
+            if (ins instanceof Samph_Types.AB) {
+                return binArith(dictMonadState)(Data_Int_Bits.or)(ins.value0)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                });
+            };
+            if (ins instanceof Samph_Types.AC) {
+                return binArith(dictMonadState)(Data_Int_Bits.xor)(ins.value0)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                });
+            };
+            if (ins instanceof Samph_Types.AD) {
+                return arith(dictMonadState)(ins.value0)(Data_Int_Bits.complement);
+            };
+            if (ins instanceof Samph_Types.A9) {
+                return arith(dictMonadState)(ins.value0)(function (i1) {
+                    return i1 << 1;
+                });
+            };
+            if (ins instanceof Samph_Types.B9) {
+                return arith(dictMonadState)(ins.value0)(function (i1) {
+                    return i1 >> 1;
+                });
+            };
+            if (ins instanceof Samph_Types.C9) {
+                return arith(dictMonadState)(ins.value0)(function (i1) {
+                    return i1 << 1;
+                });
+            };
+            if (ins instanceof Samph_Types.D9) {
+                return arith(dictMonadState)(ins.value0)(function (i1) {
+                    return i1 >> 1;
+                });
+            };
+            if (ins instanceof Samph_Types.B0) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return v + ins.value1 | 0;
+                });
+            };
+            if (ins instanceof Samph_Types.B1) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return v - ins.value1;
+                });
+            };
+            if (ins instanceof Samph_Types.B2) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return v * ins.value1 | 0;
+                });
+            };
+            if (ins instanceof Samph_Types.B3) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return v / ins.value1 | 0;
+                });
+            };
+            if (ins instanceof Samph_Types.B6) {
+                return arith(dictMonadState)(ins.value0)(function (n) {
+                    return n % ins.value1;
+                });
+            };
+            if (ins instanceof Samph_Types.BA) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return Data_Int_Bits.and(v)(ins.value1);
+                });
+            };
+            if (ins instanceof Samph_Types.BB) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return Data_Int_Bits.or(v)(ins.value1);
+                });
+            };
+            if (ins instanceof Samph_Types.BC) {
+                return arith(dictMonadState)(ins.value0)(function (v) {
+                    return Data_Int_Bits.xor(v)(ins.value1);
+                });
+            };
+            if (ins instanceof Samph_Types.C0) {
+                return jmp(dictMonadState)(ins.value0);
+            };
+            if (ins instanceof Samph_Types.C1) {
+                return Data_Function.apply(Control_Bind.join((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]()))(Control_Apply.apply(((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())(Data_Functor.map((((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(Control_Applicative.when((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]()))(use(dictMonadState)(function (dictFunctor) {
+                    return z(dictFunctor);
+                })))(Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(jmp(dictMonadState)(ins.value0))));
+            };
+            if (ins instanceof Samph_Types.C2) {
+                return Data_Function.apply(Control_Bind.join((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]()))(Control_Apply.apply(((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())(Data_Functor.map((((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(Control_Applicative.when((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]()))(uses(dictMonadState)(function (dictFunctor) {
+                    return z(dictFunctor);
+                })(Data_HeytingAlgebra.not(Data_HeytingAlgebra.heytingAlgebraBoolean))))(Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(jmp(dictMonadState)(ins.value0))));
+            };
+            if (ins instanceof Samph_Types.C3) {
+                return Data_Function.apply(Control_Bind.join((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]()))(Control_Apply.apply(((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())(Data_Functor.map((((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(Control_Applicative.when((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]()))(use(dictMonadState)(function (dictFunctor) {
+                    return s(dictFunctor);
+                })))(Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(jmp(dictMonadState)(ins.value0))));
+            };
+            if (ins instanceof Samph_Types.C4) {
+                return Data_Function.apply(Control_Bind.join((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]()))(Control_Apply.apply(((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())(Data_Functor.map((((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(Control_Applicative.when((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]()))(uses(dictMonadState)(function (dictFunctor) {
+                    return s(dictFunctor);
+                })(Data_HeytingAlgebra.not(Data_HeytingAlgebra.heytingAlgebraBoolean))))(Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(jmp(dictMonadState)(ins.value0))));
+            };
+            if (ins instanceof Samph_Types.C5) {
+                return Data_Function.apply(Control_Bind.join((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]()))(Control_Apply.apply(((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())(Data_Functor.map((((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(Control_Applicative.when((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]()))(use(dictMonadState)(function (dictFunctor) {
+                    return o(dictFunctor);
+                })))(Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(jmp(dictMonadState)(ins.value0))));
+            };
+            if (ins instanceof Samph_Types.C6) {
+                return Data_Function.apply(Control_Bind.join((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]()))(Control_Apply.apply(((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())(Data_Functor.map((((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())["__superclass_Control.Apply.Apply_0"]())["__superclass_Data.Functor.Functor_0"]())(Control_Applicative.when((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]()))(uses(dictMonadState)(function (dictFunctor) {
+                    return o(dictFunctor);
+                })(Data_HeytingAlgebra.not(Data_HeytingAlgebra.heytingAlgebraBoolean))))(Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(jmp(dictMonadState)(ins.value0))));
+            };
+            if (ins instanceof Samph_Types.CA) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return ip(dictFunctor);
+                }))(function (v) {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(push(v)(dictMonadState)(dictMonadError))(function () {
+                        return jmp(dictMonadState)(ins.value0);
+                    });
+                });
+            };
+            if (ins instanceof Samph_Types.CB) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(pop(dictMonadState)(dictMonadError))(function (v) {
+                    return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(ip(Data_Identity.functorIdentity))(v));
+                });
+            };
+            if (ins instanceof Samph_Types.CD) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(pop(dictMonadState)(dictMonadError))(function (v) {
+                    return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(ip(Data_Identity.functorIdentity))(v));
+                });
+            };
+            if (ins instanceof Samph_Types.CC) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return ip(dictFunctor);
+                }))(function (v) {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(push(v)(dictMonadState)(dictMonadError))(function () {
+                        return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(getRam(ins.value0)(dictMonadState)(dictMonadError))(function (v1) {
+                            return push(v1)(dictMonadState)(dictMonadError);
+                        });
+                    });
+                });
+            };
+            if (ins instanceof Samph_Types.E0) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return regLens(ins.value0)(dictFunctor);
+                }))(function (v) {
+                    return push(v)(dictMonadState)(dictMonadError);
+                });
+            };
+            if (ins instanceof Samph_Types.E1) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(pop(dictMonadState)(dictMonadError))(function (v) {
+                    return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(regLens(ins.value0)(Data_Identity.functorIdentity))(v));
+                });
+            };
+            if (ins instanceof Samph_Types.EA) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return sr(dictFunctor);
+                }))(function (v) {
+                    return push(v)(dictMonadState)(dictMonadError);
+                });
+            };
+            if (ins instanceof Samph_Types.EB) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(pop(dictMonadState)(dictMonadError))(function (v) {
+                    return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(sr(Data_Identity.functorIdentity))(v));
+                });
+            };
+            if (ins instanceof Samph_Types.F0) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(getIO(ins.value0)(dictMonadState)(dictMonadError))(function (v) {
+                    return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(regLens(Samph_Types.AL.value)(Data_Identity.functorIdentity))(v));
+                });
+            };
+            if (ins instanceof Samph_Types.F1) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return regLens(Samph_Types.AL.value)(dictFunctor);
+                }))(function (v) {
+                    return setIO(ins.value0)(v)(dictMonadState)(dictMonadError);
+                });
+            };
+            if (ins instanceof Samph_Types.FE) {
+                return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(Data_Unit.unit);
+            };
+            if (ins instanceof Samph_Types.O0) {
+                return Control_Monad_Error_Class.throwError(dictMonadError)(Finished.value);
+            };
+            if (ins instanceof Samph_Types.FF) {
+                return Control_Applicative.pure((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Applicative.Applicative_0"]())(Data_Unit.unit);
+            };
+            if (ins instanceof Samph_Types.FC) {
+                return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(i(Data_Identity.functorIdentity))(true));
+            };
+            if (ins instanceof Samph_Types.FD) {
+                return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(i(Data_Identity.functorIdentity))(false));
+            };
+            if (ins instanceof Samph_Types.D0) {
+                return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(regLens(ins.value0)(Data_Identity.functorIdentity))(ins.value1));
+            };
+            if (ins instanceof Samph_Types.D1) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(getRam(ins.value1)(dictMonadState)(dictMonadError))(function (v) {
+                    return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(regLens(ins.value0)(Data_Identity.functorIdentity))(v));
+                });
+            };
+            if (ins instanceof Samph_Types.D2) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                }))(function (v) {
+                    return setRam(ins.value0)(v)(dictMonadState)(dictMonadError);
+                });
+            };
+            if (ins instanceof Samph_Types.D3) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return regLens(ins.value1)(dictFunctor);
+                }))(function (v) {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(getRam(v)(dictMonadState)(dictMonadError))(function (v1) {
+                        return Control_Monad_State_Class.modify(dictMonadState)(Optic_Setter.set(regLens(ins.value0)(Data_Identity.functorIdentity))(v1));
+                    });
+                });
+            };
+            if (ins instanceof Samph_Types.D4) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return regLens(ins.value0)(dictFunctor);
+                }))(function (v) {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                        return regLens(ins.value1)(dictFunctor);
+                    }))(function (v1) {
+                        return setRam(v)(v1)(dictMonadState)(dictMonadError);
+                    });
+                });
+            };
+            if (ins instanceof Samph_Types.DA) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return regLens(ins.value0)(dictFunctor);
+                }))(function (v) {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                        return regLens(ins.value1)(dictFunctor);
+                    }))(function (v1) {
+                        return c(Data_Ord.compare(Samph_Types.ordLit)(v)(v1));
+                    });
+                });
+            };
+            if (ins instanceof Samph_Types.DB) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return regLens(ins.value0)(dictFunctor);
+                }))(function (v) {
+                    return c(Data_Ord.compare(Samph_Types.ordLit)(v)(ins.value1));
+                });
+            };
+            if (ins instanceof Samph_Types.DC) {
+                return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(use(dictMonadState)(function (dictFunctor) {
+                    return regLens(ins.value0)(dictFunctor);
+                }))(function (v) {
+                    return Control_Bind.bind((dictMonadError["__superclass_Control.Monad.Monad_0"]())["__superclass_Control.Bind.Bind_1"]())(getRam(ins.value1)(dictMonadState)(dictMonadError))(function (v1) {
+                        return c(Data_Ord.compare(Samph_Types.ordLit)(v)(v1));
+                    });
+                });
+            };
+            throw new Error("Failed pattern match at Samph.Runtime line 235, column 15 - line 329, column 24: " + [ ins.constructor.name ]);
         };
-        throw new Error("Failed pattern match at Samph.Runtime line 124, column 28 - line 127, column 53: " + [ $61.constructor.name ]);
     };
 };
 module.exports = {
-    Underflow: Underflow, 
-    Overflow: Overflow, 
-    Inbounds: Inbounds, 
     OverflowedInstruction: OverflowedInstruction, 
     CorruptedCode: CorruptedCode, 
-    Zero: Zero, 
-    NonZero: NonZero, 
-    addCheck: addCheck, 
-    mulCheck: mulCheck, 
+    StackOverflow: StackOverflow, 
+    StackUnderflow: StackUnderflow, 
+    IndexOutOfBounds: IndexOutOfBounds, 
+    InvalidPort: InvalidPort, 
+    Finished: Finished, 
+    arith: arith, 
+    binArith: binArith, 
+    getIO: getIO, 
+    getLit: getLit, 
+    getRam: getRam, 
+    i: i, 
+    io: io, 
+    ip: ip, 
+    jmp: jmp, 
+    o: o, 
+    pop: pop, 
     popIns: popIns, 
     popLit: popLit, 
     popReg: popReg, 
-    setFlags: setFlags, 
-    setInBounds: setInBounds, 
-    setOverflow: setOverflow, 
-    setUnderflow: setUnderflow, 
-    setZero: setZero, 
-    subCheck: subCheck, 
-    unSetZero: unSetZero
+    push: push, 
+    ram: ram, 
+    regLens: regLens, 
+    runInst: runInst, 
+    s: s, 
+    set: set, 
+    setIO: setIO, 
+    setRam: setRam, 
+    sp: sp, 
+    sr: sr, 
+    use: use, 
+    uses: uses, 
+    z: z
 };
