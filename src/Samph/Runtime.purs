@@ -1,16 +1,17 @@
 module Samph.Runtime where
 
-import Control.Monad.State
+import Control.Monad.State (class MonadState, modify, gets)
 import Control.Monad.Error.Class
-import Optic.Lens
-import Optic.Getter
-import Optic.Setter
-import Data.Array
-import Data.Maybe
-import Samph.Types
-import Prelude
-import Data.Int.Bits
+import Optic.Lens (lens)
+import Optic.Getter (view)
+import Optic.Setter ((.~), (%~))
+import Data.Array (updateAt, (!!))
+import Data.Maybe (Maybe(..))
+import Samph.Types (AddrLit(..), AddrReg(..), Lit(..), MachineCode(..), Reg(..))
+import Prelude (class Functor, Unit, Ordering(..), bind, compare, unit, pure, not, when, join, mod, show, map, (<<<), (<*>), (<$>), ($), (/), (*), (-), (+), (==), (=<<), (>), (<))
+import Data.Int.Bits (shr, shl, complement, (.^.), (.|.), (.&.))
 
+-- | The state of a running Samphire program
 type SamphireState =
   { ram :: Array Lit
   , al  :: Lit
@@ -39,17 +40,17 @@ ram = lens (\s -> s.ram ) (\s x -> s { ram = x } )
 io :: Lens' SamphireState (Array Lit)
 io = lens (\s -> s.io ) (\s x -> s { io = x } )
 
-i :: Lens' SamphireState Boolean
-i = lens (\s -> getLit s.sr .&.  8 > 0) (set  8)
+interrupt :: Lens' SamphireState Boolean
+interrupt = lens (\s -> getLit s.sr .&.  8 > 0) (set  8)
 
-s :: Lens' SamphireState Boolean
-s = lens (\s -> getLit s.sr .&. 16 > 0) (set 16)
+underflow :: Lens' SamphireState Boolean
+underflow = lens (\s -> getLit s.sr .&. 16 > 0) (set 16)
 
-o :: Lens' SamphireState Boolean
-o = lens (\s -> getLit s.sr .&. 32 > 0) (set 32)
+overflow :: Lens' SamphireState Boolean
+overflow = lens (\s -> getLit s.sr .&. 32 > 0) (set 32)
 
-z :: Lens' SamphireState Boolean
-z = lens (\s -> getLit s.sr .&. 64 > 0) (set 64)
+zeroFlag :: Lens' SamphireState Boolean
+zeroFlag = lens (\s -> getLit s.sr .&. 64 > 0) (set 64)
 
 set :: Int -> SamphireState -> Boolean -> SamphireState
 set n s true  = s { sr = Lit (getLit s.sr .|. n) }
@@ -156,10 +157,10 @@ popIns = do
     where popAddrLit = map (\(Lit n) -> AddrLit n) popLit
 
 regLens :: Reg -> Lens' SamphireState Lit
-regLens AL = lens (\s -> s.al ) (\s x -> s { al = x } )
-regLens BL = lens (\s -> s.bl ) (\s x -> s { bl = x } )
-regLens CL = lens (\s -> s.cl ) (\s x -> s { cl = x } )
-regLens DL = lens (\s -> s.dl ) (\s x -> s { dl = x } )
+regLens AL = lens (\st -> st.al ) (\st x -> st { al = x } )
+regLens BL = lens (\st -> st.bl ) (\st x -> st { bl = x } )
+regLens CL = lens (\st -> st.cl ) (\st x -> st { cl = x } )
+regLens DL = lens (\st -> st.dl ) (\st x -> st { dl = x } )
 
 arith :: forall m. (MonadState SamphireState m)
       => Reg
@@ -169,10 +170,10 @@ arith xreg op = do
   Lit xval <- use x
   let res = op xval
   modify (sr .~ Lit 0)
-  when (res <   0) (modify (s .~ true))
-  when (res > 255) (modify (o .~ true))
+  when (res <   0) (modify (underflow .~ true))
+  when (res > 255) (modify (overflow .~ true))
   let wrp = res .&. 255
-  when (wrp ==  0) (modify (z .~ true))
+  when (wrp ==  0) (modify (zeroFlag .~ true))
   modify (x .~ Lit wrp)
   where x = regLens xreg
 
@@ -257,12 +258,12 @@ runInst ins = case ins of
   BB x (Lit y) -> arith x (_ .|. y)
   BC x (Lit y) -> arith x (_ .^. y)
   C0 x -> jmp x
-  C1 x -> join $ when <$> use  z     <*> (pure<<<jmp) x
-  C2 x -> join $ when <$> uses z not <*> (pure<<<jmp) x
-  C3 x -> join $ when <$> use  s     <*> (pure<<<jmp) x
-  C4 x -> join $ when <$> uses s not <*> (pure<<<jmp) x
-  C5 x -> join $ when <$> use  o     <*> (pure<<<jmp) x
-  C6 x -> join $ when <$> uses o not <*> (pure<<<jmp) x
+  C1 x -> join $ when <$> use  zeroFlag      <*> (pure<<<jmp) x
+  C2 x -> join $ when <$> uses zeroFlag  not <*> (pure<<<jmp) x
+  C3 x -> join $ when <$> use  underflow     <*> (pure<<<jmp) x
+  C4 x -> join $ when <$> uses underflow not <*> (pure<<<jmp) x
+  C5 x -> join $ when <$> use  overflow      <*> (pure<<<jmp) x
+  C6 x -> join $ when <$> uses overflow  not <*> (pure<<<jmp) x
   CA x -> do
     i <- use ip
     push i
@@ -299,8 +300,8 @@ runInst ins = case ins of
   FE -> pure unit
   O0 -> throwError Finished
   FF -> pure unit
-  FC -> modify (i .~ true)
-  FD -> modify (i .~ false)
+  FC -> modify (interrupt .~ true)
+  FD -> modify (interrupt .~ false)
   D0 x y -> modify (regLens x .~ y)
   D1 x (AddrLit y) -> do
     i <- getRam (Lit y)
@@ -328,8 +329,8 @@ runInst ins = case ins of
     rhs <- getRam (Lit y)
     c (compare lhs rhs)
   where
-    c LT = modify (s .~ true)
-    c EQ = modify (z .~ true)
+    c LT = modify (underflow .~ true)
+    c EQ = modify (zeroFlag .~ true)
     c GT = pure unit
 
 initialState :: SamphireState
