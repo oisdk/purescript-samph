@@ -1,39 +1,59 @@
-module Samph.Pars where
+module Samph.Pars
+  ( unBase
+  , firstPass
+  , program
+  , instruction
+  , labelDecl
+  , addrReg
+  , addrLit
+  , reg
+  , hex
+  ) where
+
+import Prelude
+
+import Samph.Types (AddrLit(..), AddrReg(..), Lit(..), MachineCode(..), Reg(..))
+
+import Control.Alternative ((<|>))
+import Control.Apply (lift2)
+
+import Control.Monad.Eff (Eff, runPure)
+import Control.Monad.Reader (class MonadReader, runReader, ask)
+import Control.Monad.ST (ST, STRef, newSTRef, modifySTRef, runST, readSTRef)
+import Control.Monad.Trans (lift)
+
+import Data.Traversable (class Foldable, foldl)
+import Data.Array (catMaybes, many, init, some)
+
+import Data.Char.Unicode (digitToInt)
+
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
+
+import Data.StrMap (StrMap, lookup, freezeST)
+import Data.StrMap.ST (STStrMap, new, poke, peek)
 
 import Text.Parsing.Parser (ParserT(..), fail, unParserT)
 import Text.Parsing.Parser.Combinators (lookAhead, choice, skipMany, try, notFollowedBy, (<?>))
 import Text.Parsing.Parser.String (anyChar)
-import Data.Array (catMaybes, many, init, some)
-import Data.Traversable (class Foldable, foldl)
-import Prelude (class Monad, class Apply, Unit, bind, pure, map, flip, void, show, when, ($>), (<>), (<$>), (<*), (*>), (<*>), (+), ($), (>), (*))
-import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
-import Samph.Types (AddrLit(..), AddrReg(..), Lit(..), MachineCode(..), Reg(..))
-import Data.StrMap.ST (STStrMap, new, poke, peek)
-import Control.Monad.Eff (Eff, runPure)
-import Control.Monad.Reader (class MonadReader, runReader, ask)
-import Control.Monad.Trans (lift)
-import Control.Alternative ((<|>))
-import Control.Monad.ST (ST, STRef, newSTRef, modifySTRef, runST, readSTRef)
-import Data.Char.Unicode (digitToInt)
-import Data.StrMap (StrMap, lookup, freezeST)
 import Text.Parsing.Parser.Token (GenTokenParser, GenLanguageDef(..), makeTokenParser, letter, alphaNum)
 
+-- | Converts a list of integers into the number they represent in a
+-- | given base
+-- | ```purescript
+-- | unBase 10 [1,2,3] == 123
+-- | unBase 2  [1,0,1] == 5
+-- | unBase 16 [3,15,12] == 1020
+-- | ```
 unBase :: forall f. Foldable f => Int -> f Int -> Int
 unBase b = foldl f 0 where f n e = n * b + e
 
-hex :: forall m. Monad m => ParserT String m Int
-hex = lex (map (unBase 16) (some (try hexDigs)) <?> "a hex number") where
-  hexDigs = do
-    c <- anyChar
-    maybe (fail "Expected a hex digit") pure (digitToInt c)
-
-reg :: forall m. Monad m => ParserT String m Reg
-reg = choice
-  [ reserved "AL" $> AL
-  , reserved "BL" $> BL
-  , reserved "CL" $> CL
-  , reserved "DL" $> DL
-  ] <?> "a register"
+parseMaybe :: forall a b s m. Monad m
+              => (a -> Maybe b)
+              -> String
+              -> ParserT s m a
+              -> ParserT s m b
+parseMaybe f e p =
+  maybe (fail ("Expected " <> e)) pure <<< f =<< p
 
 samph :: forall m. Monad m => GenLanguageDef String m
 samph = LanguageDef
@@ -74,52 +94,61 @@ nops =
   , "CLO", "HALT", "NOP", "STI", "CLI"
   , "END" ]
 
+type StringParser = forall m. Monad m => ParserT String m String
+
 tokenParser :: forall m. Monad m => GenTokenParser String m
 tokenParser = makeTokenParser samph
 
 lex :: forall m a. Monad m => ParserT String m a -> ParserT String m a
 lex = tokenParser.lexeme
+brackets :: forall m a. Monad m => ParserT String m a -> ParserT String m a
+brackets = tokenParser.brackets
 
 reserved :: forall m. Monad m => String -> ParserT String m Unit
 reserved = tokenParser.reserved
 
-brackets :: forall m a. Monad m => ParserT String m a -> ParserT String m a
-brackets = tokenParser.brackets
-
-ident :: forall m. Monad m => ParserT String m String
+ident :: StringParser
 ident = tokenParser.identifier
-
-colon :: forall m. Monad m => ParserT String m String
+colon :: StringParser
 colon = tokenParser.colon
-
-comma :: forall m. Monad m => ParserT String m String
+comma :: StringParser
 comma = tokenParser.comma
-
-op :: forall m. Monad m => String -> ParserT String m Unit
-op = tokenParser.reservedOp
 
 wSpace :: forall m. Monad m => ParserT String m Unit
 wSpace = tokenParser.whiteSpace
 
-lit :: forall m. Monad m => ParserT String m Lit
-lit = (do
+-- | Parses a hex number
+hex :: forall m. Monad m => ParserT String m Int
+hex = lex (map (unBase 16) (some (try hexDigs)) <?> "a hex number") where
+  hexDigs = parseMaybe digitToInt "a hex digit" anyChar
+
+reg :: forall m. Monad m => ParserT String m Reg
+reg = choice
+  [ reserved "AL" $> AL
+  , reserved "BL" $> BL
+  , reserved "CL" $> CL
+  , reserved "DL" $> DL
+  ] <?> "a register"
+
+word8 :: forall m. Monad m => ParserT String m Int
+word8 = (do
   n <- hex
   when (n > 255) (fail "Only numbers up to 255 supported")
-  pure (Lit n)) <?> "a hex literal"
+  pure n) <?> "a hex literal"
+
+lit :: forall m. Monad m => ParserT String m Lit
+lit = map Lit word8
 
 addrLit :: forall m. Monad m => ParserT String m AddrLit
-addrLit = brackets (do
-  Lit n <- lit
-  pure (AddrLit n)) <?> "An address literal"
+addrLit = brackets (map AddrLit word8) <?> "An address literal"
 
 addrReg :: forall m. Monad m => ParserT String m AddrReg
 addrReg = brackets (map AddrReg reg) <?> "An address in a register"
 
 labelDecl :: forall m. Monad m => ParserT String m String
-labelDecl = do
-  named <- ident <?> "label"
-  colon
-  pure named
+labelDecl = (ident <?> "label") <* colon
+
+-- First-pass parsers
 
 logLabel :: forall h.
             STRef h Int
@@ -138,32 +167,25 @@ instruction :: forall m. Monad m
 instruction = binop <|> unop <|> nop
 
 binop :: forall m. Monad m => ParserT String m String
-binop = do
-  _ <- choice (map op binops)
-  x <- ident' <|> arg
-  comma
-  y <- ident' <|> arg
-  pure (x <> " " <> y)
+binop = choice (map reserved binops) *> (sepSpace <$> (arg' <* comma) <*> arg')
+  where
+    sepSpace x y = x <> " " <> y
+    arg' = ident' <|> arg
 
 unop :: forall m. Monad m => ParserT String m String
-unop = do
-  _ <- choice (map op unops)
-  ident' <|> arg
+unop = choice (map reserved unops) *> (ident' <|> arg)
 
 nop :: forall m. Monad m => ParserT String m String
-nop = choice (map op (fromMaybe [] (init nops))) $> ""
+nop = choice (map reserved (fromMaybe [] (init nops))) $> ""
 
 ident' :: forall m. Monad m => ParserT String m String
 ident' = try (ident <* notFollowedBy colon)
 
 arg :: forall m. Monad m => ParserT String m String
 arg = choice [ map show (try addrReg)
-              , map show (try addrLit)
-              , map show reg
-              , map show lit ]
-
-unMon :: forall n m a. Monad m => (forall b. n b -> m b) -> ParserT String n a -> ParserT String m a
-unMon f (ParserT p) = ParserT $ \s -> f (p s)
+             , map show (try addrLit)
+             , map show reg
+             , map show lit ]
 
 firstPass :: forall m. Monad m => ParserT String m (StrMap Int)
 firstPass = wSpace *> ParserT p where
@@ -179,10 +201,20 @@ firstPass = wSpace *> ParserT p where
     reserved "END"
     lift (freezeST m)
 
+-- Second-pass parsers
+
+unMon :: forall n m a. Monad m => (n ~> m) -> ParserT String n a -> ParserT String m a
+unMon f (ParserT p) = ParserT $ \s -> f (p s)
+
 revAp :: forall f a b. Apply f => f a -> f (a -> b) -> f b
-revAp a b = (\x f -> f x) <$> a <*> b
+revAp = lift2 (flip id)
 
 infixl 4 revAp as <**>
+
+revMap :: forall f a b c. (Functor f) => (a -> b -> c) -> f b -> f (a -> c)
+revMap f = map (flip f)
+
+infixl 4 revMap as <$$>
 
 binArith :: forall m. Monad m => ParserT String m MachineCode
 binArith = choice
@@ -195,11 +227,8 @@ binArith = choice
   , arith' "OR"  AB BB
   , arith' "XOR" AC BC
   ] where
-    arith' n a b = do
-      op n *>
-      ((reg <* comma) <**>
-      (map (flip a) reg <|>
-      map (\y x -> b x y) lit))
+    arith' n a b =
+      reserved n *> ((reg <* comma) <**> (a <$$> reg <|> b <$$> lit))
 
 unArith :: forall m. Monad m => ParserT String m MachineCode
 unArith = choice
@@ -213,35 +242,31 @@ unArith = choice
   , un' "PUSH" E0
   , un' "POP"  E1
   ] where
-    un' n c = op n *> map c reg
+    un' n c = reserved n *> map c reg
 
 mov ::  forall m. Monad m => ParserT String m MachineCode
-mov = op "MOV" *> (regOpts <|> othOpts) where
-  regOpts = do
-    r <- reg <* comma
-    d0 r <|> d3 r <|> d1 r
+mov = reserved "MOV" *> (regOpts <|> othOpts) where
+  regOpts = (reg <* comma) <**> (D0 <$$> lit <|> D3 <$$> addrReg <|> D1 <$$> addrLit)
   othOpts = (d4 <|> d2) <* comma <*> reg
-  d0 r = D0 r <$> lit
-  d3 r = D3 r <$> addrReg
-  d1 r = D1 r <$> addrLit
   d4 = map D4 addrReg
   d2 = map D2 addrLit
 
 cmp :: forall m. Monad m => ParserT String m MachineCode
-cmp = op "CMP" *> do
-  r <- reg <* comma
-  DA r <$> reg <|> DB r <$> lit <|> DC r <$> addrLit
+cmp =
+  reserved "CMP" *>
+  (reg <* comma) <**>
+  (DA <$$> reg <|> DB <$$> lit <|> DC <$$> addrLit)
 
 jmp :: forall m. (Monad m, MonadReader (StrMap Int) m)
     => ParserT String m MachineCode
 jmp = do
-  c <- choice [ op "JMP" $> C0
-              , op "JZ"  $> C1
-              , op "JNZ" $> C2
-              , op "JS"  $> C3
-              , op "JNS" $> C4
-              , op "JO"  $> C5
-              , op "JNO" $> C6 ]
+  c <- choice [ reserved "JMP" $> C0
+              , reserved "JZ"  $> C1
+              , reserved "JNZ" $> C2
+              , reserved "JS"  $> C3
+              , reserved "JNS" $> C4
+              , reserved "JO"  $> C5
+              , reserved "JNO" $> C6 ]
   name <- ident
   labels <- lift ask
   case lookup name labels of
@@ -273,8 +298,5 @@ instructions m = do
   pure (catMaybes ins)
 
 program :: forall m. Monad m => ParserT String m (Array MachineCode)
-program = do
-  wSpace
-  fpLabels <- lookAhead firstPass
-  instructions fpLabels
+program = wSpace *> (lookAhead firstPass >>= instructions)
 

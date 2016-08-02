@@ -132,7 +132,11 @@ var main = function __do() {
     Test_QuickCheck.quickCheck(Test_QuickCheck.testableFunction(arbPos)(Test_QuickCheck.testableResult))(checkUnBase)();
     Test_QuickCheck.quickCheck(Test_QuickCheck.testableFunction(arbPos)(Test_QuickCheck.testableResult))(checkHexParse)();
     once(Test_QuickCheck.testableResult)(Test_QuickCheck.assertEquals(Samph_Types.eqLit)(Samph_Types.showLit)(Data_Semiring.add(Samph_Types.semiRingLit)(255)(1))(0))();
+    once(Test_QuickCheck.testableResult)(Test_QuickCheck.assertEquals(Data_Eq.eqInt)(Data_Show.showInt)(Samph_Pars.unBase(Data_Foldable.foldableArray)(10)([ 1, 2, 3 ]))(123))();
+    once(Test_QuickCheck.testableResult)(Test_QuickCheck.assertEquals(Data_Eq.eqInt)(Data_Show.showInt)(Samph_Pars.unBase(Data_Foldable.foldableArray)(2)([ 1, 0, 1 ]))(5))();
+    once(Test_QuickCheck.testableResult)(Test_QuickCheck.assertEquals(Data_Eq.eqInt)(Data_Show.showInt)(Samph_Pars.unBase(Data_Foldable.foldableArray)(16)([ 3, 15, 12 ]))(1020))();
     parseExample(Samph_Types.eqReg)(Samph_Types.showReg)(Samph_Pars.reg(Data_Identity.monadIdentity))(Samph_Types.AL.value)("AL")();
+    parseExample(Samph_Types.eqReg)(Samph_Types.showReg)(Samph_Pars.reg(Data_Identity.monadIdentity))(Samph_Types.AL.value)("Al")();
     parseExample(Samph_Types.eqReg)(Samph_Types.showReg)(Samph_Pars.reg(Data_Identity.monadIdentity))(Samph_Types.BL.value)("BL")();
     parseExample(Samph_Types.eqReg)(Samph_Types.showReg)(Samph_Pars.reg(Data_Identity.monadIdentity))(Samph_Types.CL.value)("CL")();
     parseExample(Samph_Types.eqReg)(Samph_Types.showReg)(Samph_Pars.reg(Data_Identity.monadIdentity))(Samph_Types.DL.value)("DL")();

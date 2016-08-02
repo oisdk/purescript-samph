@@ -1,15 +1,19 @@
 module Samph.Runtime where
 
+import Prelude
+
+import Control.Monad.Error.Class (class MonadError, throwError)
 import Control.Monad.State (class MonadState, modify, gets)
-import Control.Monad.Error.Class
-import Optic.Lens (lens)
-import Optic.Getter (view)
-import Optic.Setter ((.~), (%~))
+
 import Data.Array (updateAt, (!!))
-import Data.Maybe (Maybe(..))
-import Samph.Types (AddrLit(..), AddrReg(..), Lit(..), MachineCode(..), Reg(..))
-import Prelude (class Functor, Unit, Ordering(..), bind, compare, unit, pure, not, when, join, mod, show, map, (<<<), (<*>), (<$>), ($), (/), (*), (-), (+), (==), (=<<), (>), (<))
 import Data.Int.Bits (shr, shl, complement, (.^.), (.|.), (.&.))
+import Data.Maybe (Maybe(..))
+
+import Optic.Getter (view)
+import Optic.Lens (lens)
+import Optic.Setter ((.~), (%~))
+
+import Samph.Types (AddrLit(..), AddrReg(..), Lit(..), MachineCode(..), Reg(..))
 
 -- | The state of a running Samphire program
 type SamphireState =
@@ -18,21 +22,21 @@ type SamphireState =
   , bl  :: Lit
   , cl  :: Lit
   , dl  :: Lit
-  , ip  :: Lit
-  , sp  :: Lit
-  , sr  :: Lit
+  , instructionPointer  :: Lit
+  , stackPointer  :: Lit
+  , statusRegister  :: Lit
   , io  :: Array Lit }
 
 type Lens' s a = forall f. (Functor f) => (a -> f a) -> s -> f s
 
-ip :: Lens' SamphireState Lit
-ip = lens (\s -> s.ip ) (\s x -> s { ip = x } )
+instructionPointer :: Lens' SamphireState Lit
+instructionPointer = lens (\s -> s.instructionPointer ) (\s x -> s { instructionPointer = x } )
 
-sr :: Lens' SamphireState Lit
-sr = lens (\s -> s.sr ) (\s x -> s { sr = x } )
+statusRegister :: Lens' SamphireState Lit
+statusRegister = lens (\s -> s.statusRegister ) (\s x -> s { statusRegister = x } )
 
-sp :: Lens' SamphireState Lit
-sp = lens (\s -> s.sp ) (\s x -> s { sp = x } )
+stackPointer :: Lens' SamphireState Lit
+stackPointer = lens (\s -> s.stackPointer ) (\s x -> s { stackPointer = x } )
 
 ram :: Lens' SamphireState (Array Lit)
 ram = lens (\s -> s.ram ) (\s x -> s { ram = x } )
@@ -41,20 +45,20 @@ io :: Lens' SamphireState (Array Lit)
 io = lens (\s -> s.io ) (\s x -> s { io = x } )
 
 interrupt :: Lens' SamphireState Boolean
-interrupt = lens (\s -> getLit s.sr .&.  8 > 0) (set  8)
+interrupt = lens (\s -> getLit s.statusRegister .&.  8 > 0) (set  8)
 
 underflow :: Lens' SamphireState Boolean
-underflow = lens (\s -> getLit s.sr .&. 16 > 0) (set 16)
+underflow = lens (\s -> getLit s.statusRegister .&. 16 > 0) (set 16)
 
 overflow :: Lens' SamphireState Boolean
-overflow = lens (\s -> getLit s.sr .&. 32 > 0) (set 32)
+overflow = lens (\s -> getLit s.statusRegister .&. 32 > 0) (set 32)
 
 zeroFlag :: Lens' SamphireState Boolean
-zeroFlag = lens (\s -> getLit s.sr .&. 64 > 0) (set 64)
+zeroFlag = lens (\s -> getLit s.statusRegister .&. 64 > 0) (set 64)
 
 set :: Int -> SamphireState -> Boolean -> SamphireState
-set n s true  = s { sr = Lit (getLit s.sr .|. n) }
-set n s false = s { sr = Lit (getLit s.sr .&. complement n) }
+set n s true  = s { statusRegister = Lit (getLit s.statusRegister .|. n) }
+set n s false = s { statusRegister = Lit (getLit s.statusRegister .&. complement n) }
 
 getLit :: Lit -> Int
 getLit (Lit n) = n
@@ -65,8 +69,22 @@ use l = gets (view l)
 uses :: forall s m a b. (MonadState s m) => Lens' s a -> (a -> b) -> m b
 uses l f = gets (f <<< view l)
 
+setState :: forall s m a. (MonadState s m) => Lens' s a -> a -> m Unit
+setState l x = modify (l .~ x)
+
+infixl 3 setState as .=
+
+plusState :: forall s m a. (MonadState s m, Semiring a) => Lens' s a -> a -> m Unit
+plusState l x = modify (l %~ flip add x)
+
+infixl 3 plusState as +=
+
+subState :: forall s m a. (MonadState s m, Ring a) => Lens' s a -> a -> m Unit
+subState l x = modify (l %~ flip sub x)
+
+infixl 3 subState as -=
+
 data RuntimeError =
-  OverflowedInstruction Lit |
   CorruptedCode String String |
   StackOverflow |
   StackUnderflow |
@@ -78,13 +96,10 @@ type ErrorState a = forall m. (MonadState SamphireState m, MonadError RuntimeErr
 
 popLit :: ErrorState Lit
 popLit = do
-  Lit i <- use ip
-  r <- use ram
-  case r !! i of
-    Nothing -> throwError (OverflowedInstruction (Lit i))
-    Just x -> do
-      modify (\s -> s { ip = Lit i + Lit 1 } )
-      pure x
+  i <- use instructionPointer
+  x <- getRam i
+  instructionPointer += Lit 1
+  pure x
 
 popReg :: ErrorState Reg
 popReg = do
@@ -169,17 +184,17 @@ arith :: forall m. (MonadState SamphireState m)
 arith xreg op = do
   Lit xval <- use x
   let res = op xval
-  modify (sr .~ Lit 0)
-  when (res <   0) (modify (underflow .~ true))
-  when (res > 255) (modify (overflow .~ true))
+  statusRegister .= Lit 0
+  when (res <   0) (underflow .= true)
+  when (res > 255) (overflow  .= true)
   let wrp = res .&. 255
-  when (wrp ==  0) (modify (zeroFlag .~ true))
-  modify (x .~ Lit wrp)
+  when (wrp ==  0) (zeroFlag  .= true)
+  x .= Lit wrp
   where x = regLens xreg
 
 jmp :: forall m. (MonadState SamphireState m)
        => Lit -> m Unit
-jmp i = modify (ip .~ i)
+jmp i = instructionPointer .= i
 
 binArith :: forall m. (MonadState SamphireState m)
             => (Int -> Int -> Int)
@@ -191,46 +206,51 @@ binArith op xreg ylens =
 
 push :: Lit -> ErrorState Unit
 push x = do
-  p <- use sp
+  p <- use stackPointer
   when (p == Lit 255) (throwError StackOverflow)
   setRam p x
-  modify (sp %~ (_ - Lit 1))
+  stackPointer -= Lit 1
 
 pop :: ErrorState Lit
 pop = do
-  p <- use sp
+  p <- use stackPointer
   when (p == Lit 191) (throwError StackUnderflow)
   el <- getRam p
-  modify (sp %~ (_ + Lit 1))
+  stackPointer += Lit 1
   pure el
 
-getRam :: Lit -> ErrorState Lit
-getRam (Lit i) = do
-  el <- uses ram (_ !! i)
-  case el of
-    Nothing -> throwError (IndexOutOfBounds (Lit i))
+getArr :: forall m. (MonadError RuntimeError m, MonadState SamphireState m)
+          => (Lit -> RuntimeError)
+          -> (SamphireState -> Array Lit)
+          -> Lit -> m Lit
+getArr e l (Lit i) = do
+  arr <- gets l
+  case arr !! i of
+    Nothing -> throwError (e (Lit i))
     Just x -> pure x
 
-setRam :: Lit -> Lit -> ErrorState Unit
-setRam (Lit i) x = do
-  arr <- uses ram (updateAt i x)
+setArr :: forall m. (MonadError RuntimeError m, MonadState SamphireState m)
+          => (SamphireState -> Array Lit)
+          -> (Array Lit -> SamphireState -> SamphireState)
+          -> (Lit -> RuntimeError)
+          -> Lit -> Lit -> m Unit
+setArr g s e (Lit i) x = do
+  arr <- gets (updateAt i x <<< g)
   case arr of
-    Nothing -> throwError (IndexOutOfBounds (Lit i))
-    Just a -> modify (ram .~ a)
+    Nothing -> throwError (e (Lit i))
+    Just a -> modify (s a)
 
-getIO :: Lit -> ErrorState Lit
-getIO (Lit i) = do
-  el <- uses io (_ !! i)
-  case el of
-    Nothing -> throwError (InvalidPort (Lit i))
-    Just x -> pure x
+getRam :: forall m. (MonadError RuntimeError m, MonadState SamphireState m) => Lit -> m Lit
+getRam = getArr IndexOutOfBounds (_.ram)
 
-setIO :: Lit -> Lit -> ErrorState Unit
-setIO (Lit i) x = do
-  arr <- uses io (updateAt i x)
-  case arr of
-    Nothing -> throwError (InvalidPort (Lit i))
-    Just a -> modify (io .~ a)
+setRam :: forall m. (MonadError RuntimeError m, MonadState SamphireState m) => Lit -> Lit -> m Unit
+setRam = setArr (_.ram) (\nr ss -> ss { ram = nr } ) IndexOutOfBounds
+
+getIO ::  forall m. (MonadError RuntimeError m, MonadState SamphireState m) => Lit -> m Lit
+getIO = getArr InvalidPort (_.io)
+
+setIO :: forall m. (MonadError RuntimeError m, MonadState SamphireState m) => Lit -> Lit -> m Unit
+setIO = setArr (_.io) (\nr ss -> ss { io = nr } ) InvalidPort
 
 runInst :: MachineCode -> ErrorState Unit
 runInst ins = case ins of
@@ -265,17 +285,17 @@ runInst ins = case ins of
   C5 x -> join $ when <$> use  overflow      <*> (pure<<<jmp) x
   C6 x -> join $ when <$> uses overflow  not <*> (pure<<<jmp) x
   CA x -> do
-    i <- use ip
+    i <- use instructionPointer
     push i
     jmp x
   CB -> do
     i <- pop
-    modify (ip .~ i)
+    instructionPointer .= i
   CD -> do
     i <- pop
-    modify (ip .~ i)
+    instructionPointer .= i
   CC x -> do
-    i <- use ip
+    i <- use instructionPointer
     push i
     el <- getRam x
     push el
@@ -284,35 +304,35 @@ runInst ins = case ins of
     push i
   E1 x -> do
     i <- pop
-    modify (regLens x .~ i)
+    regLens x .= i
   EA -> do
-    i <- use sr
+    i <- use statusRegister
     push i
   EB -> do
     i <- pop
-    modify (sr .~ i)
+    statusRegister .= i
   F0 x -> do
     i <- getIO x
-    modify (regLens AL .~ i)
+    regLens AL .= i
   F1 x -> do
     i <- use (regLens AL)
     setIO x i
   FE -> pure unit
   O0 -> throwError Finished
   FF -> pure unit
-  FC -> modify (interrupt .~ true)
-  FD -> modify (interrupt .~ false)
-  D0 x y -> modify (regLens x .~ y)
+  FC -> interrupt .= true
+  FD -> interrupt .= false
+  D0 x y -> regLens x .= y
   D1 x (AddrLit y) -> do
     i <- getRam (Lit y)
-    modify (regLens x .~ i)
+    regLens x .= i
   D2 (AddrLit x) y -> do
     i <- use (regLens y)
     setRam (Lit x) i
   D3 x (AddrReg y) -> do
     r <- use (regLens y)
     i <- getRam r
-    modify (regLens x .~ i)
+    regLens x .= i
   D4 (AddrReg x) y -> do
     r <- use (regLens x)
     i <- use (regLens y)
@@ -329,8 +349,8 @@ runInst ins = case ins of
     rhs <- getRam (Lit y)
     c (compare lhs rhs)
   where
-    c LT = modify (underflow .~ true)
-    c EQ = modify (zeroFlag .~ true)
+    c LT = underflow .= true
+    c EQ = zeroFlag  .= true
     c GT = pure unit
 
 initialState :: SamphireState
@@ -340,9 +360,9 @@ initialState =
   , bl: Lit 0
   , cl: Lit 0
   , dl: Lit 0
-  , ip: Lit 0
-  , sr: Lit 0
-  , sp: Lit 191
+  , instructionPointer: Lit 0
+  , statusRegister: Lit 0
+  , stackPointer: Lit 191
   , io: [] }
 
 step :: ErrorState Unit

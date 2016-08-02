@@ -4,10 +4,10 @@
 ; ----- The labels have been given more readable names too. ---
 
 Start: 
-	MOV BL,C0	; Make BL point to video RAM
-	MOV AL,3C	; 3C is the ASCII code of the 'less than' symbol
+	Mov BL,C0	; Make BL point to video RAM
+	Mov AL,3C	; 3C is the ASCII code of the 'less than' symbol
 Here: 
-	MOV [BL],AL	; Copy the ASCII code in AL to the RAM location that BL is pointing to.
+	Mov [BL],AL	; Copy the ASCII code in AL to the RAM location that BL is pointing to.
 	CMP AL,7B	; Compare AL with '{'
 	JZ Clear	; If AL contained '{' jump to Clear:
 	INC AL		; Put the next ASCII code into AL

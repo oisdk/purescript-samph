@@ -91,7 +91,11 @@ main = do
   quickCheck checkUnBase
   quickCheck checkHexParse
   once (Lit 255 + Lit 1 === Lit 0)
+  once (unBase 10 [1,2,3] === 123)
+  once (unBase 2 [1,0,1] === 5)
+  once (unBase 16 [3,15,12] === 1020)
   parseExample reg AL "AL"
+  parseExample reg AL "Al"
   parseExample reg BL "BL"
   parseExample reg CL "CL"
   parseExample reg DL "DL"
